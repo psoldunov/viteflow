@@ -1,7 +1,11 @@
 {
 	"name": "viteflow",
 	"author": "Philipp Soldunov",
-	"version": "0.0.2-f-1",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/psoldunov/viteflow.git"
+	},
+	"version": "0.0.3a",
 	"type": "module",
 	"description": "Webflow dev server using Vite and Express",
 	"main": "./dist/bin/viteflow.js",
@@ -10,12 +14,13 @@
 	},
 	"scripts": {
 		"dev": "tsc --watch",
-		"build": "tsc"
+		"build": "tsc",
+		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"files": [
 		"dist"
 	],
-	"license": "MIT",
+	"license": "ISC",
 	"dependencies": {
 		"chokidar": "^3.6.0",
 		"compression": "^1.7.4",
