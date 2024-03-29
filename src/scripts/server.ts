@@ -30,7 +30,6 @@ export default function startServer(): void {
         hmr: {
           host: 'localhost',
         },
-        cors: false,
       },
       appType: 'custom',
       base,
