@@ -25,7 +25,13 @@ export default function startServer(): void {
     const { createServer } = await import('vite');
     const vite = await createServer({
       configFile: join(__dirname, '../config/vite.config.js'),
-      server: { middlewareMode: true },
+      server: {
+        middlewareMode: true,
+        hmr: {
+          host: 'localhost',
+        },
+        cors: false,
+      },
       appType: 'custom',
       base,
     });
