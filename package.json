@@ -1,7 +1,7 @@
 {
 	"name": "viteflow",
 	"author": "Philipp Soldunov",
-	"version": "0.0.2-c",
+	"version": "0.0.2-d",
 	"type": "module",
 	"description": "Webflow dev server using Vite and Express",
 	"main": "./dist/bin/viteflow.js",
