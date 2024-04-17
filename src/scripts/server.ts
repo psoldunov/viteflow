@@ -27,6 +27,7 @@ export default function startServer(): void {
       configFile: join(__dirname, '../config/vite.config.js'),
       server: {
         middlewareMode: true,
+        host: '0.0.0.0'
       },
       appType: 'custom',
       base,
