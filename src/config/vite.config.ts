@@ -23,6 +23,7 @@ export default defineConfig({
 			'@components': resolve(processPath, './src/components'),
 			'@styles': resolve(processPath, './src/styles'),
 			'@plugins': resolve(processPath, './src/plugins'),
+			'@functions': resolve(processPath, './src/functions'),
 		}
 	},
 });
