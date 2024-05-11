@@ -1,11 +1,13 @@
 import { defineConfig } from 'vite';
 import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
+//@ts-ignore
+import scopeTailwind from "vite-plugin-scope-tailwind";
 import { resolve, join } from 'path';
 
 const processPath = process.cwd();
 
 export default defineConfig({
-	plugins: [cssInjectedByJsPlugin()],
+	plugins: [cssInjectedByJsPlugin(), scopeTailwind()],
 	build: {
 		rollupOptions: {
 			input: join(processPath, '/.viteflow/main.js'),

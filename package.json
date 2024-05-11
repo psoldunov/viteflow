@@ -1,40 +1,41 @@
 {
-	"name": "viteflow",
-	"author": "Philipp Soldunov",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/psoldunov/viteflow.git"
-	},
-	"version": "0.0.3-alpha.4",
-	"type": "module",
-	"description": "Webflow dev server using Vite and Express",
-	"main": "./dist/bin/viteflow.js",
-	"bin": {
-		"viteflow": "dist/bin/viteflow.js"
-	},
-	"scripts": {
-		"dev": "tsc --watch",
-		"build": "tsc",
-		"test": "echo \"Error: no test specified\" && exit 1"
-	},
-	"files": [
-		"dist"
-	],
-	"license": "ISC",
-	"dependencies": {
-		"chokidar": "^3.6.0",
-		"compression": "^1.7.4",
-		"cross-env": "^7.0.3",
-		"express": "^4.19.2",
-		"sass": "^1.71.0",
-		"sirv": "^2.0.4",
-		"vite": "^5.2.9",
-		"vite-plugin-css-injected-by-js": "^3.4.0"
-	},
-	"devDependencies": {
-		"@types/express": "^4.17.21",
-		"@types/node": "^20.11.27",
-		"esbuild": "^0.20.1",
-		"typescript": "^5.4.2"
-	}
+  "name": "viteflow",
+  "author": "Philipp Soldunov",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/psoldunov/viteflow.git"
+  },
+  "version": "0.0.3-alpha.5",
+  "type": "module",
+  "description": "Webflow dev server using Vite and Express",
+  "main": "./dist/bin/viteflow.js",
+  "bin": {
+    "viteflow": "dist/bin/viteflow.js"
+  },
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "files": [
+    "dist"
+  ],
+  "license": "ISC",
+  "dependencies": {
+    "chokidar": "^3.6.0",
+    "compression": "^1.7.4",
+    "cross-env": "^7.0.3",
+    "express": "^4.19.2",
+    "sass": "^1.71.0",
+    "sirv": "^2.0.4",
+    "vite": "^5.2.9",
+    "vite-plugin-css-injected-by-js": "^3.4.0",
+    "vite-plugin-scope-tailwind": "^1.1.10"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.11.27",
+    "esbuild": "^0.20.1",
+    "typescript": "^5.4.2"
+  }
 }
