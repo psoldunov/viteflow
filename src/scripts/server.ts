@@ -56,7 +56,7 @@ export default function startServer(): void {
 
         template = template.replace(
           '</body>',
-          `<script src="/.viteflow/main.js"></script></body>`
+          `<script type="module" src="/.viteflow/main.js"></script></body>`
         );
 
         let content = await vite.transformIndexHtml(url, template);
