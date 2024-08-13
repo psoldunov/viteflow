@@ -121,7 +121,7 @@ export default async function startDeploy(
     await uploadFile(data, bundleFilePath).then(() => {
       console.log(`
         now copy this script tag to your webflow project:
-        <script viteflow-deploy-build src="${data.hostedUrl}"></script>
+        <script viteflow-deploy-build src="${data.assetUrl}"></script>
         `);
     });
   } catch (error) {
