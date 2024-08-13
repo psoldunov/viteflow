@@ -31,6 +31,9 @@ if (!fs.existsSync(mainPath)) {
   fs.writeFileSync(mainPath, "");
 }
 
+let token = "";
+let siteId = "";
+
 console.log(`Looking for config at: ${configPath}`);
 
 async function loadConfig(): Promise<void> {
@@ -40,8 +43,6 @@ async function loadConfig(): Promise<void> {
       const config: Config = module.default;
       if (config.url) {
         process.env.WEBFLOW_API_URL = config.url;
-        // process.env.WEBFLOW_API_TOKEN = config.token;
-        // process.env.SITE_ID = config.siteId;
         console.log(`Using Webflow API URL from config: ${config.url}`);
       } else {
         console.error("The URL is not defined in viteflow.config.js");
@@ -49,16 +50,14 @@ async function loadConfig(): Promise<void> {
       }
 
       if (config.siteId) {
-        process.env.SITE_ID = config.siteId;
-        console.log(`Using Webflow Site ID from config: ${config.siteId}`);
+        siteId = config.siteId;
       } else {
         console.error("The Site ID is not defined in viteflow.config.js");
         process.exit(1);
       }
 
       if (config.token) {
-        process.env.WEBFLOW_API_TOKEN = config.token;
-        console.log(`Using Webflow API Token from config: ${config.token}`);
+        token = config.token;
       }
     } catch (error) {
       console.error("Error loading config:", error);
@@ -93,7 +92,7 @@ async function main(): Promise<void> {
 
     if (args[0] === "--build") return;
 
-    await startDeploy();
+    await startDeploy(token, siteId);
     return;
   }
 

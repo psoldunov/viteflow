@@ -75,10 +75,10 @@ async function uploadFile(
   }
 }
 
-export default async function startDeploy(): Promise<void> {
-  const token: string = process.env.WEBFLOW_API_TOKEN || "";
-  const siteId: string = process.env.WEBFLOW_SITE_ID || "";
-
+export default async function startDeploy(
+  token: string,
+  siteId: string,
+): Promise<void> {
   if (!token || !siteId) {
     console.error(
       "Please set WEBFLOW_API_TOKEN and WEBFLOW_SITE_ID in the configuration file.",
