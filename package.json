@@ -5,7 +5,7 @@
     "type": "git",
     "url": "https://github.com/psoldunov/viteflow.git"
   },
-  "version": "0.0.3-alpha.8",
+  "version": "0.0.3-alpha.9",
   "type": "module",
   "description": "Webflow dev server using Vite and Express",
   "main": "./dist/bin/viteflow.js",
@@ -29,6 +29,7 @@
     "sass": "^1.71.0",
     "sirv": "^2.0.4",
     "vite": "^5.2.9",
+    "vite-plugin-commonjs": "^0.10.1",
     "vite-plugin-css-injected-by-js": "^3.4.0"
   },
   "devDependencies": {
