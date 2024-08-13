@@ -15,6 +15,10 @@ export default defineConfig({
         assetFileNames: `[name].[ext]`,
       },
     },
+    target: "es2015",
+  },
+  esbuild: {
+    target: "es2015",
   },
   resolve: {
     extensions: [".js", ".ts", ".jsx", ".tsx", ".json", ".css", ".scss"],
