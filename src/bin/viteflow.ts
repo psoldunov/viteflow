@@ -93,7 +93,7 @@ async function main(): Promise<void> {
 
     if (args[0] === "--build") return;
 
-    startDeploy();
+    await startDeploy();
     return;
   }
 
