@@ -24,9 +24,8 @@ interface AssetData {
   uploadDetails: UploadDetails;
   uploadUrl: string;
   assetUrl: string;
+  hostedUrl: string;
 }
-
-const randomVersion = Math.random().toString(36).substring(7);
 
 async function getFileMD5(filePath: string): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -120,63 +119,10 @@ export default async function startDeploy(
 
     // Upload the file
     await uploadFile(data, bundleFilePath).then(() => {
-      try {
-        // Step 1: Register a hosted script
-        axios
-          .post(
-            `https://api.webflow.com/beta/sites/${siteId}/registered_scripts/hosted`,
-            {
-              hostedLocation: data.assetUrl,
-              integrityHash: fileHash,
-              canCopy: true,
-              version: randomVersion.toString(),
-              displayName: "viteflow",
-            },
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            },
-          )
-          .then(function (response) {
-            console.log("Script registered:", response);
-
-            // Step 2: Add the registered script to your site
-            return axios.put(
-              `https://api.webflow.com/beta/sites/${siteId}/custom_code`,
-              {
-                scripts: [
-                  {
-                    id: response.data._id,
-                    location: "footer",
-                    version: randomVersion.toString(),
-                  },
-                ],
-              },
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              },
-            );
-          })
-          .then(function (response) {
-            console.log("Script added to site:", response);
-
-            // Step 3: Check the registered scripts on your site
-            return axios.get(
-              `https://api.webflow.com/beta/sites/${siteId}/custom_code`,
-            );
-          })
-          .then(function (response) {
-            console.log("Registered scripts:", response);
-          })
-          .catch(function (error) {
-            console.error("An error occurred:", error);
-          });
-      } catch (error) {
-        console.error("An error occurred:", error);
-      }
+      console.log(`
+        now copy this script tag to your webflow project:
+        <script viteflow-deploy-build src="${data.hostedUrl}"></script>
+        `);
     });
   } catch (error) {
     console.error("Error in deployment:", error);
