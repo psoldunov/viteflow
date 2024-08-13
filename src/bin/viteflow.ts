@@ -1,31 +1,34 @@
 #!/usr/bin/env node
 
-import startServer from '../scripts/server.js';
-import startWatcher from '../scripts/watcher.js';
-import fs from 'fs';
-import { join, dirname, resolve } from 'path';
-import { exec } from 'child_process';
-import { fileURLToPath } from 'url';
+import startServer from "../scripts/server.js";
+import startWatcher from "../scripts/watcher.js";
+import startDeploy from "../scripts/deployer.js";
+import fs from "fs";
+import { join, dirname, resolve } from "path";
+import { exec } from "child_process";
+import { fileURLToPath } from "url";
 
 interface Config {
   url: string;
+  token: string;
+  siteId: string;
 }
 
 // Use dynamic import to load the viteflow.config.js from the root of the consumer project
-const configPath = resolve(process.cwd(), './viteflow.config.js');
-const mainPath = resolve(process.cwd(), './.viteflow/main.js');
+const configPath = resolve(process.cwd(), "./viteflow.config.js");
+const mainPath = resolve(process.cwd(), "./.viteflow/main.js");
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Locate vite
-let vitePath = resolve(process.cwd(), './node_modules/.bin/vite');
-let viteConfigPath = join(__dirname, '../config/vite.config.js');
+let vitePath = resolve(process.cwd(), "./node_modules/.bin/vite");
+let viteConfigPath = join(__dirname, "../config/vite.config.js");
 
 // Check if mainTsPath exists and create it if it doesn't
 if (!fs.existsSync(mainPath)) {
   fs.mkdirSync(dirname(mainPath), { recursive: true });
-  fs.writeFileSync(mainPath, '');
+  fs.writeFileSync(mainPath, "");
 }
 
 console.log(`Looking for config at: ${configPath}`);
@@ -37,6 +40,8 @@ async function loadConfig(): Promise<void> {
       const config: Config = module.default;
       if (config.url) {
         process.env.WEBFLOW_API_URL = config.url;
+        process.env.WEBFLOW_API_TOKEN = config.token;
+        process.env.SITE_ID = config.siteId;
         console.log(`Using Webflow API URL from config: ${config.url}`);
       } else {
         console.error("The URL is not defined in viteflow.config.js");
@@ -57,8 +62,8 @@ const args = process.argv.slice(2);
 async function main(): Promise<void> {
   await loadConfig();
 
-  if (args[0] === '--build') {
-    startWatcher('build');
+  if (args[0] === "--build" || args[0] === "--deploy") {
+    startWatcher("build");
 
     // Execute vite build command
     exec(`${vitePath} build -c ${viteConfigPath}`, (error, stdout, stderr) => {
@@ -72,10 +77,15 @@ async function main(): Promise<void> {
       }
       console.log(`stdout: ${stdout}`);
     });
-  } else {
-    startServer();
-    startWatcher();
+
+    if (args[0] === "--build") return;
+
+    startDeploy();
+    return;
   }
+
+  startServer();
+  startWatcher();
 }
 
 main().catch(console.error);
