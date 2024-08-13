@@ -40,12 +40,25 @@ async function loadConfig(): Promise<void> {
       const config: Config = module.default;
       if (config.url) {
         process.env.WEBFLOW_API_URL = config.url;
-        process.env.WEBFLOW_API_TOKEN = config.token;
-        process.env.SITE_ID = config.siteId;
+        // process.env.WEBFLOW_API_TOKEN = config.token;
+        // process.env.SITE_ID = config.siteId;
         console.log(`Using Webflow API URL from config: ${config.url}`);
       } else {
         console.error("The URL is not defined in viteflow.config.js");
         process.exit(1);
+      }
+
+      if (config.siteId) {
+        process.env.SITE_ID = config.siteId;
+        console.log(`Using Webflow Site ID from config: ${config.siteId}`);
+      } else {
+        console.error("The Site ID is not defined in viteflow.config.js");
+        process.exit(1);
+      }
+
+      if (config.token) {
+        process.env.WEBFLOW_API_TOKEN = config.token;
+        console.log(`Using Webflow API Token from config: ${config.token}`);
       }
     } catch (error) {
       console.error("Error loading config:", error);

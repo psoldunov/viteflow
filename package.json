@@ -5,7 +5,7 @@
     "type": "git",
     "url": "https://github.com/psoldunov/viteflow.git"
   },
-  "version": "0.0.3-alpha.13",
+  "version": "0.0.3-alpha.14",
   "type": "module",
   "description": "Webflow dev server using Vite and Express",
   "main": "./dist/bin/viteflow.js",

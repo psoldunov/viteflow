@@ -79,14 +79,14 @@ export default async function startDeploy(): Promise<void> {
   const token: string = process.env.WEBFLOW_API_TOKEN || "";
   const siteId: string = process.env.WEBFLOW_SITE_ID || "";
 
-  const bundleFilePath = join(process.cwd(), "/dist/main.js");
-
   if (!token || !siteId) {
     console.error(
       "Please set WEBFLOW_API_TOKEN and WEBFLOW_SITE_ID in the configuration file.",
     );
     process.exit(1);
   }
+
+  const bundleFilePath = join(process.cwd(), "/dist/main.js");
 
   try {
     const fileHash = await getFileMD5(bundleFilePath);
