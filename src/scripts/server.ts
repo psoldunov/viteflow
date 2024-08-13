@@ -57,14 +57,11 @@ export default function startServer(): void {
 
         const $ = cheerio.load(template);
 
+        $("script[viteflow-deploy-build]").remove();
+
         $("body").append(
           `<script type="module" src="/.viteflow/main.js"></script>`,
         );
-
-        // template = template.replace(
-        //   "</body>",
-        //   `<script type="module" src="/.viteflow/main.js"></script></body>`,
-        // );
 
         let content = await vite.transformIndexHtml(url, $.html());
 
