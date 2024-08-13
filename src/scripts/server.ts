@@ -66,7 +66,7 @@ export default function startServer(): void {
         //   `<script type="module" src="/.viteflow/main.js"></script></body>`,
         // );
 
-        let content = await vite.transformIndexHtml(url, template);
+        let content = await vite.transformIndexHtml(url, $.html());
 
         res.status(200).set({ "Content-Type": "text/html" }).send(content);
       } catch (e) {
