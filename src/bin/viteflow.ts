@@ -1,18 +1,13 @@
-#!/usr/bin/env node
+// #!/usr/bin/env node
 
-import startServer from "../scripts/server.js";
-import startWatcher from "../scripts/watcher.js";
-import startDeploy from "../scripts/deployer.js";
-import fs from "fs";
-import { join, dirname, resolve } from "path";
 import { exec } from "child_process";
+import fs from "fs";
+import { dirname, join, resolve } from "path";
 import { fileURLToPath } from "url";
-
-interface Config {
-  url: string;
-  token: string;
-  siteId: string;
-}
+import startDeploy from "../scripts/deployer";
+import startServer from "../scripts/server";
+import startWatcher from "../scripts/watcher";
+import type { Config } from "../../types";
 
 // Use dynamic import to load the viteflow.config.js from the root of the consumer project
 const configPath = resolve(process.cwd(), "./viteflow.config.js");
@@ -31,7 +26,7 @@ if (!fs.existsSync(mainPath)) {
   fs.writeFileSync(mainPath, "");
 }
 
-let token = "";
+let siteUrl = "";
 let siteId = "";
 
 console.log(`Looking for config at: ${configPath}`);
