@@ -28,6 +28,7 @@ if (!fs.existsSync(mainPath)) {
 
 let siteUrl = "";
 let siteId = "";
+let token = "";
 
 console.log(`Looking for config at: ${configPath}`);
 
