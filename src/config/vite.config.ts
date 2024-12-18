@@ -16,9 +16,11 @@ export default defineConfig({
       },
     },
     target: "es2015",
+    minify: "esbuild",
   },
   esbuild: {
-    target: "es2015",
+    pure: ["console.log"],
+    minifyIdentifiers: false,
   },
   resolve: {
     extensions: [".js", ".ts", ".jsx", ".tsx", ".json", ".css", ".scss"],
