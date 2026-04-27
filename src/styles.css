@@ -1,0 +1,20 @@
+/* Global styles loaded by /src/global.ts on every page. */
+:root {
+	--viteflow-accent: #ff5722;
+}
+
+[data-viteflow-loaded]::before {
+	content: "viteflow loaded";
+	position: fixed;
+	bottom: 1rem;
+	left: 1rem;
+	padding: 0.4rem 0.6rem;
+	background: var(--viteflow-accent);
+	color: white;
+	font:
+		12px / 1 ui-monospace,
+		monospace;
+	border-radius: 4px;
+	z-index: 99999;
+	pointer-events: none;
+}
