@@ -123,14 +123,58 @@ To customize rules, edit `biome.json`. See [Biome's docs](https://biomejs.dev/re
 
 ## Environment variables
 
-Viteflow does not require any environment variables for normal use. If you need to read environment variables in your `/src` code, use Vite's standard `import.meta.env` mechanism:
+Two purposes:
 
-1. Create a `.env.local` file at the project root (gitignored by default — `.gitignore` ignores `*.log` but you should add `.env*` if you commit secrets to a public repo).
-2. Prefix variables with `VITE_` to expose them to client code: `VITE_API_URL=https://api.example.com`
-3. Read in `/src`:
+1. **Override `viteflow.config.ts` values** without editing the file. Useful for per-developer overrides, CI/CD, or working against a different staging site temporarily.
+2. **Inject build-time constants into client code** via Vite's standard `import.meta.env`.
+
+### Override config
+
+Create `.env.local` at the project root (gitignored). Set:
+
+```
+WEBFLOW_STAGING_URL=https://my-other-staging.webflow.io
+PORT=4000
+```
+
+`vite.config.ts` reads these via `loadEnv` and merges them on top of `viteflow.config.ts` before passing to the proxy plugin. Precedence (high to low):
+
+1. `WEBFLOW_STAGING_URL` env var (`.env.local`, `.env`, or shell)
+2. `webflowStagingUrl` in `viteflow.config.ts`
+
+The same applies to `PORT`. `openOnDev` is config-only.
+
+Supported env files (Vite convention, picked up automatically):
+
+| File | Loaded for | Tracked in git? |
+|------|-----------|-----------------|
+| `.env` | All modes | Yes (typically) |
+| `.env.local` | All modes | **No** (gitignored) |
+| `.env.development` | `bun dev` | Yes |
+| `.env.development.local` | `bun dev` | **No** |
+| `.env.production` | `bun run build` | Yes |
+| `.env.production.local` | `bun run build` | **No** |
+| `.env.example` | Reference template | Yes |
+
+`.env.example` ships with the template documenting all supported variables. Copy it to `.env.local` to use:
+
+```sh
+cp .env.example .env.local
+```
+
+### Client-side variables
+
+To expose a variable to your `/src` code, prefix with `VITE_`:
+
+```
+VITE_API_URL=https://api.example.com
+```
 
 ```ts
+// in any /src file
 const apiUrl = import.meta.env.VITE_API_URL;
 ```
 
-These are inlined at build time — never put secrets in `VITE_*` variables, because they end up in `dist/main.js` plain text.
+These are inlined at build time — they end up in `dist/main.js` as plain string literals. **Never put secrets in `VITE_*` variables** — anyone with the bundle can read them.
+
+For secrets used by your handlers (API tokens, etc.), accept that they are visible in the bundle and treat them as public. If you need true secrets, your handlers should call your own backend, which holds the secrets server-side.

@@ -4,3 +4,8 @@ dist
 *.log
 .vite
 bun.lockb
+
+# Environment files (keep .env.example tracked)
+.env
+.env.local
+.env.*.local
