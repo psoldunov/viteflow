@@ -1,7 +1,7 @@
 import { defineConfig, loadEnv } from 'vite';
 import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
-import baseConfig from './viteflow.config';
 import { pluginWebflowProxy } from './viteflow/plugin-webflow-proxy';
+import baseConfig from './viteflow.config';
 
 export default defineConfig(({ mode }) => {
 	const fileEnv = loadEnv(mode, process.cwd(), '');
