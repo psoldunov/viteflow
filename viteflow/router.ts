@@ -101,9 +101,28 @@ function normalize(path: string): string {
 	return path;
 }
 
-export async function dispatch(rawPath: string): Promise<void> {
-	const path = normalize(rawPath);
-	const baseCtx: RouteContext = { params: {}, path };
+function parseLocation(input: string): {
+	path: string;
+	searchParams: URLSearchParams;
+	hash: string;
+	id: string;
+} {
+	const url = new URL(input, 'http://localhost');
+	const path = normalize(url.pathname);
+	const hash = url.hash;
+	const rawId = hash.startsWith('#') ? hash.slice(1) : hash;
+	let id: string;
+	try {
+		id = decodeURIComponent(rawId);
+	} catch {
+		id = rawId;
+	}
+	return { path, searchParams: url.searchParams, hash, id };
+}
+
+export async function dispatch(rawInput: string): Promise<void> {
+	const { path, searchParams, hash, id } = parseLocation(rawInput);
+	const baseCtx: RouteContext = { params: {}, path, searchParams, hash, id };
 
 	if (globalHandler) {
 		try {
@@ -126,7 +145,7 @@ export async function dispatch(rawPath: string): Promise<void> {
 			}
 		});
 		try {
-			await route.handler({ params, path });
+			await route.handler({ params, path, searchParams, hash, id });
 		} catch (err) {
 			console.error(
 				`[viteflow] handler error in ${route.filePath} (${route.pattern})`,
