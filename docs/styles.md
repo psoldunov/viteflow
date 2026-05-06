@@ -24,11 +24,11 @@ Create a `.css` file under `/src` and import it from a TypeScript file:
 ```
 
 ```ts
-// src/global.ts
+// src/_global.ts
 import './styles.css';
 ```
 
-The CSS now applies on every page (because `global.ts` runs everywhere).
+The CSS now applies on every page (because `_global.ts` runs everywhere).
 
 ## Per-route CSS
 
@@ -54,7 +54,7 @@ The naming `_styles/` uses the underscore convention so it is not scanned as a r
 
 ### Dev
 
-Vite handles CSS natively. When you import `./styles.css` from `global.ts`, the dev server:
+Vite handles CSS natively. When you import `./styles.css` from `_global.ts`, the dev server:
 
 1. Transforms the import into a JS module that injects a `<style>` tag.
 2. Wires HMR so saved CSS edits update the page **without a reload**. You see the new styles in milliseconds.
@@ -173,7 +173,7 @@ export default {
 @tailwind utilities;
 ```
 
-5. Import in `global.ts`:
+5. Import in `_global.ts`:
 
 ```ts
 import './_styles/tailwind.css';

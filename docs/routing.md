@@ -6,7 +6,7 @@ Viteflow scans `/src/**/*.ts` at startup and builds a route table. At runtime, t
 
 | File path | URL pathname |
 |-----------|--------------|
-| `src/global.ts` | runs on every page (not a route — see below) |
+| `src/_global.ts` | runs on every page (not a route — see below) |
 | `src/index.ts` | `/` |
 | `src/about.ts` | `/about` |
 | `src/blog.ts` | `/blog` |
@@ -71,9 +71,9 @@ For URL `/users/42`, `/users/me` doesn't regex-match. Next is `/users/:id` — p
 - Query strings and hashes are ignored. `/blog?utm=foo#section` matches `src/blog.ts`.
 - Path matching is case-sensitive. `/About` does **not** match `src/about.ts`.
 
-## The `global.ts` file
+## The `_global.ts` file
 
-`src/global.ts` is special. It is not a route — it runs on **every page** before the matched route handler.
+`src/_global.ts` is special. It is not a route — it runs on **every page** before the matched route handler. The leading underscore signals that it is not a route file (matching the same convention as `_lib/` private utilities).
 
 Use it for:
 
@@ -94,7 +94,7 @@ const handler: RouteHandler = ({ path }) => {
 export default handler;
 ```
 
-If `src/global.ts` does not exist, viteflow skips it silently.
+If `src/_global.ts` does not exist, viteflow skips it silently.
 
 ## What is not supported
 
