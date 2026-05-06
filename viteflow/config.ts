@@ -1,3 +1,11 @@
+export type ViteflowDeployConfig = {
+	/**
+	 * Webflow Site ID (24-char hex). Find it in Site Settings → General → Site ID.
+	 * Prefer the WEBFLOW_SITE_ID env var; this is a committed-defaults fallback.
+	 */
+	siteId?: string;
+};
+
 export type ViteflowConfig = {
 	/**
 	 * Full URL of your Webflow staging site (e.g. "https://my-site.webflow.io").
@@ -15,6 +23,13 @@ export type ViteflowConfig = {
 	 * Auto-open browser at http://localhost:PORT/ on `bun dev`. Default true.
 	 */
 	openOnDev?: boolean;
+
+	/**
+	 * Settings for `bun run deploy` — auto-publishes the built bundle to Webflow.
+	 * Requires WEBFLOW_API_TOKEN in .env.local. The token is only read by the
+	 * deploy script and never reaches the client bundle.
+	 */
+	deploy?: ViteflowDeployConfig;
 };
 
 function validate(config: ViteflowConfig): ViteflowConfig {
@@ -56,6 +71,20 @@ function validate(config: ViteflowConfig): ViteflowConfig {
 
 	if (config.openOnDev !== undefined && typeof config.openOnDev !== 'boolean') {
 		throw new Error('[viteflow] openOnDev must be a boolean.');
+	}
+
+	if (config.deploy !== undefined) {
+		if (typeof config.deploy !== 'object' || config.deploy === null) {
+			throw new Error('[viteflow] deploy must be an object.');
+		}
+		if (config.deploy.siteId !== undefined) {
+			if (
+				typeof config.deploy.siteId !== 'string' ||
+				config.deploy.siteId.length === 0
+			) {
+				throw new Error('[viteflow] deploy.siteId must be a non-empty string.');
+			}
+		}
 	}
 
 	const normalizedUrl = config.webflowStagingUrl.endsWith('/')

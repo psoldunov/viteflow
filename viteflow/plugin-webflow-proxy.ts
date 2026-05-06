@@ -1,6 +1,7 @@
 import type { ServerResponse } from 'node:http';
 import type { HtmlTagDescriptor, Plugin, ViteDevServer } from 'vite';
 import type { ViteflowConfig } from './config';
+import { VITEFLOW_BUNDLE_TAG_REGEX } from './marker';
 
 const ALLOWED_RESPONSE_HEADERS = new Set([
 	'content-type',
@@ -72,8 +73,11 @@ export function pluginWebflowProxy(config: ViteflowConfig): Plugin {
 
 	return {
 		name: 'viteflow:webflow-proxy',
-		transformIndexHtml() {
-			return [VITEFLOW_TAG];
+		transformIndexHtml(html) {
+			return {
+				html: html.replace(VITEFLOW_BUNDLE_TAG_REGEX, ''),
+				tags: [VITEFLOW_TAG],
+			};
 		},
 		configureServer(server) {
 			return () => {

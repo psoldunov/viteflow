@@ -8,6 +8,7 @@
 		"dev": "vite",
 		"build": "vite build",
 		"preview": "vite preview",
+		"deploy": "vite build && bun viteflow/deploy.ts",
 		"typecheck": "tsc --noEmit",
 		"lint": "biome lint .",
 		"format": "biome format --write .",
