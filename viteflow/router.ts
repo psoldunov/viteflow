@@ -47,7 +47,7 @@ function buildRoutes(): {
 	const seen = new Map<string, string>();
 
 	for (const [filePath, mod] of Object.entries(modules)) {
-		if (filePath === '/src/global.ts') {
+		if (filePath === '/src/_global.ts') {
 			if (typeof mod.default === 'function') globalHandler = mod.default;
 			continue;
 		}

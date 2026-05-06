@@ -131,7 +131,7 @@ export function lazyLoadImages(selector = 'img[data-src]'): () => void {
 ```
 
 ```ts
-// src/global.ts
+// src/_global.ts
 import type { RouteHandler } from '../viteflow/types';
 import { lazyLoadImages } from './_lib/lazy-load';
 

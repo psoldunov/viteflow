@@ -74,7 +74,7 @@ You do **not** need to add anything to your Webflow project's Custom Code during
 
 ## 4. Make your first edit
 
-Open `src/global.ts` and add a line:
+Open `src/_global.ts` and add a line:
 
 ```ts
 import type { RouteHandler } from '../viteflow/types';
@@ -90,7 +90,7 @@ export default handler;
 
 Save. Your browser updates instantly without a full page reload — the router re-runs, and your new `console.log` fires.
 
-Open the browser DevTools console. You will see logs from `global.ts` and the matched route file.
+Open the browser DevTools console. You will see logs from `_global.ts` and the matched route file.
 
 ## 5. Add a route
 

@@ -1,6 +1,6 @@
 # Handlers
 
-Every route file (and `global.ts`) exports a default function — the **handler** — that viteflow calls when the URL matches.
+Every route file (and `_global.ts`) exports a default function — the **handler** — that viteflow calls when the URL matches.
 
 ## Signature
 
@@ -35,7 +35,7 @@ An object whose keys come from the dynamic segments in the route filename and wh
 | `src/users/[id]/posts/[postId].ts` | `/users/42/posts/9` | `{ id: '42', postId: '9' }` |
 | `src/about.ts` | `/about` | `{}` |
 
-For `global.ts`, `params` is always `{}` since it is not tied to a route pattern.
+For `_global.ts`, `params` is always `{}` since it is not tied to a route pattern.
 
 Values are always strings. If you need numbers, parse them yourself:
 
@@ -171,7 +171,7 @@ The router scans `/src/**/*.ts` and treats every match as a route candidate. To 
 
 ```
 src/
-  global.ts
+  _global.ts
   index.ts
   blog/[slug].ts
   _lib/dom.ts          ← ignored by router, importable from anywhere

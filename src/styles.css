@@ -1,4 +1,4 @@
-/* Global styles loaded by /src/global.ts on every page. */
+/* Global styles loaded by /src/_global.ts on every page. */
 :root {
 	--viteflow-accent: #ff5722;
 }

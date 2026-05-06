@@ -13,8 +13,8 @@ your-project/
 │   ├── config.ts                   # ViteflowConfig type + defineConfig helper
 │   └── plugin-webflow-proxy.ts     # Vite plugin: HTML proxy + script injection
 ├── src/                            # your code
-│   ├── global.ts                   # runs on every page
-│   ├── styles.css                  # imported by global.ts → embedded in bundle
+│   ├── _global.ts                  # runs on every page
+│   ├── styles.css                  # imported by _global.ts → embedded in bundle
 │   ├── index.ts                    # /
 │   ├── about.ts                    # /about
 │   ├── blog.ts                     # /blog
@@ -70,7 +70,7 @@ Vite resolves this glob at build time:
 ### Filtering
 
 For each entry:
-1. If `filePath === '/src/global.ts'`, store its default export as the global handler. Skip route-table entry.
+1. If `filePath === '/src/_global.ts'`, store its default export as the global handler. Skip route-table entry. (The explicit check runs before the underscore-prefix filter below, so the global file still loads even though its name starts with `_`.)
 2. If any path segment starts with `_`, skip silently (private utility).
 3. If the module has no default function export, skip with a console warning.
 4. Otherwise, convert the file path to a route pattern and add to the route table.

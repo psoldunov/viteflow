@@ -48,7 +48,7 @@ Browser opens `http://localhost:5173/` showing your Webflow staging site with lo
 
 | File | URL |
 |------|-----|
-| `src/global.ts` | every page (runs first) |
+| `src/_global.ts` | every page (runs first) |
 | `src/index.ts` | `/` |
 | `src/about.ts` | `/about` |
 | `src/blog.ts` | `/blog` |
@@ -89,7 +89,7 @@ viteflow/                      # framework internals (don't edit)
   config.ts                    # ViteflowConfig + defineConfig
   plugin-webflow-proxy.ts      # Vite plugin: proxy + script injection
 src/                           # your code
-  global.ts                    # runs everywhere
+  _global.ts                   # runs everywhere
   styles.css                   # bundled into dist/main.js
   index.ts                     # /
   about.ts                     # /about
