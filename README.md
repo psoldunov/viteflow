@@ -12,7 +12,7 @@ Full guides live in [`/docs`](./docs/README.md):
 - [Configuration](./docs/configuration.md) — `viteflow.config.ts` reference
 - [Routing](./docs/routing.md) — file-based routing rules
 - [Handlers](./docs/handlers.md) — handler signature, lifecycle, idempotency
-- [Styles](./docs/styles.md) — CSS, Sass, PostCSS, Tailwind
+- [Styles](./docs/styles.md) — CSS, Sass
 - [Development](./docs/development.md) — proxy mechanics, HMR, debugging
 - [Production](./docs/production.md) — building and deploying
 - [Recipes](./docs/recipes.md) — GSAP, jQuery, forms, lazy loading, more
