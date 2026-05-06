@@ -73,6 +73,15 @@ function shortNumber(n: number): string {
 	return `${(n / (1024 * 1024)).toFixed(2)} MB`;
 }
 
+function parseDomains(raw: string | undefined): string[] | undefined {
+	if (!raw) return undefined;
+	const ids = raw
+		.split(',')
+		.map((s) => s.trim())
+		.filter(Boolean);
+	return ids.length > 0 ? ids : undefined;
+}
+
 async function main(): Promise<void> {
 	const opts = parseArgs(process.argv.slice(2));
 	const config = await loadConfig();
@@ -83,10 +92,13 @@ async function main(): Promise<void> {
 		''
 	).trim();
 	const token = (process.env.WEBFLOW_API_TOKEN ?? '').trim();
+	const customDomains =
+		parseDomains(process.env.WEBFLOW_CUSTOM_DOMAINS) ??
+		config.deploy?.customDomains;
 
 	if (!siteId) {
 		throw new Error(
-			'[viteflow] Missing site ID. Set deploy.siteId in viteflow.config.ts or WEBFLOW_SITE_ID in .env.local.',
+			'[viteflow] Missing site ID. Set WEBFLOW_SITE_ID in .env.local (preferred) or deploy.siteId in viteflow.config.ts.',
 		);
 	}
 	if (!token) {
@@ -208,13 +220,15 @@ async function main(): Promise<void> {
 		return;
 	}
 
-	const customDomains = opts.live ? config.deploy?.customDomains : undefined;
+	const liveDomains = opts.live ? customDomains : undefined;
 	console.log(
 		`[viteflow] publishing (subdomain${opts.live ? ' + custom domains' : ''})…`,
 	);
 	await api.publish({
 		publishToWebflowSubdomain: true,
-		...(customDomains && customDomains.length > 0 ? { customDomains } : {}),
+		...(liveDomains && liveDomains.length > 0
+			? { customDomains: liveDomains }
+			: {}),
 	});
 
 	console.log('[viteflow] done.');

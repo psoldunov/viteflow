@@ -76,10 +76,13 @@ export class WebflowApi {
 			let hint = '';
 			if (res.status === 403 && text.includes('invalid_auth_version')) {
 				hint =
-					'\n\n[viteflow] Your token is a legacy v1 site token. ' +
-					'Generate a v2 token at Webflow → Site Settings → Apps & Integrations → API access ' +
-					'(create a new token; existing v1 tokens show a "legacy API" warning), ' +
-					'then update WEBFLOW_API_TOKEN in .env.local.';
+					'\n\n[viteflow] 403 invalid_auth_version. Two common causes:' +
+					'\n  1. WEBFLOW_SITE_ID points to a site this token cannot access. ' +
+					'Check `curl -H "Authorization: Bearer $WEBFLOW_API_TOKEN" https://api.webflow.com/v2/sites` ' +
+					'to see which sites the token can reach, and copy the right id.' +
+					'\n  2. The token is a legacy v1 site token. Generate a fresh one at ' +
+					'Webflow → Site Settings → Apps & Integrations → API access (existing v1 ' +
+					'tokens show a "legacy API" warning) and update WEBFLOW_API_TOKEN.';
 			} else if (res.status === 403 && text.includes('missing_scopes')) {
 				hint =
 					'\n\n[viteflow] Token is missing required scopes. ' +

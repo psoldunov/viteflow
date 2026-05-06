@@ -91,38 +91,52 @@ Best for: hands-off deploys, CI pipelines, anyone who'd rather not paste code.
 
 `bun run deploy` builds the bundle, uploads it to Webflow as a site asset, registers it as a hosted custom-code script applied to the footer (just before `</body>`), and publishes the site. Re-running it replaces the previous viteflow script and wipes the old asset — no duplicates, no manual cleanup.
 
-**Setup:**
+**Setup (`.env.local` is the primary source of truth; `viteflow.config.ts` is a fallback for committed defaults):**
 
-1. Create a **v2** API token in Webflow: **Site Settings → Apps & Integrations → API access → Generate API token**. Grant scopes:
+1. Create an API token in Webflow: **Site Settings → Apps & Integrations → API access → Generate API token**. Grant scopes:
    - `custom_code:write`
    - `assets:write`
    - `sites:write`
 
-   ⚠ **Must be a v2 token.** Webflow has stopped issuing v1 tokens, but if you have an existing one it will show a "legacy API" warning — that token won't work and returns `403 invalid_auth_version`. Generate a fresh one.
-2. Find your **Site ID** at **Site Settings → General → Site ID**.
-3. Copy `.env.example` to `.env.local` and set:
+   ⚠ Webflow has stopped issuing v1 tokens, but if you have an old one it will show a "legacy API" warning — that token won't work and returns `403 invalid_auth_version`. Generate a fresh one.
+
+2. Find your **Site ID** at **Site Settings → General → Site ID**, or list every site your token can reach:
+
+   ```sh
+   curl -H "Authorization: Bearer $WEBFLOW_API_TOKEN" https://api.webflow.com/v2/sites
+   ```
+
+3. Copy `.env.example` to `.env.local` and fill in:
 
    ```
    WEBFLOW_API_TOKEN=wfpat_...
+   WEBFLOW_SITE_ID=6123abc...
+   # Optional, only used with --live:
+   # WEBFLOW_CUSTOM_DOMAINS=domain-id-1,domain-id-2
    ```
 
-4. Set `deploy.siteId` in `viteflow.config.ts` (or set `WEBFLOW_SITE_ID` in `.env.local` to override per-developer):
+   That's all you need to run `bun run deploy`. `.env.local` is gitignored, so secrets and per-developer overrides stay local.
+
+4. *(Optional, only if you're shipping a viteflow template to a team and want committed defaults)* set the same values in `viteflow.config.ts`:
 
    ```ts
    export default defineConfig({
    	webflowStagingUrl: 'https://your-site.webflow.io',
    	deploy: {
    		siteId: '6123abc...',
+   		customDomains: ['domain-id-1', 'domain-id-2'],
    	},
    });
    ```
+
+   Env values always win over config-file values, so anyone with `.env.local` can override.
 
 **Run:**
 
 ```sh
 bun run deploy            # build, upload, apply, publish to staging subdomain
 bun run deploy --no-publish   # apply without publishing (preview in Webflow Designer)
-bun run deploy --live     # also publish to deploy.customDomains
+bun run deploy --live     # also publish to WEBFLOW_CUSTOM_DOMAINS / deploy.customDomains
 ```
 
 **How it works (and the one caveat):**
@@ -132,14 +146,14 @@ bun run deploy --live     # also publish to deploy.customDomains
 - The API has a publish rate limit of **1 per minute**. Back-to-back `bun run deploy` calls within a minute will succeed up to the apply step but fail at publish; just wait a minute and re-run, or use `--no-publish` then publish manually.
 - Each deploy creates a fresh asset URL with a fresh SRI hash. Webflow's CDN edge cache is bypassed, so changes show up on the next page load (no `?v=` cache-bust needed).
 
-**To get custom domain IDs** (for `deploy.customDomains`):
+**To get custom domain IDs** (for `WEBFLOW_CUSTOM_DOMAINS` or `deploy.customDomains`):
 
 ```sh
 curl -H "Authorization: Bearer $WEBFLOW_API_TOKEN" \
      https://api.webflow.com/v2/sites/$WEBFLOW_SITE_ID/custom_domains
 ```
 
-Copy each domain `id` (not the URL) into the array.
+Copy each domain `id` (not the URL) — comma-separated for the env var, or as an array in `viteflow.config.ts`.
 
 #### Cache-busting
 

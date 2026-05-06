@@ -64,7 +64,7 @@ If the port is taken, Vite auto-increments. So if `5173` is busy, you get `5174`
 
 ### `deploy` (optional, `object`)
 
-Settings for `bun run deploy`. Omit if you publish manually. See [Production → Strategy C](./production.md#strategy-c-auto-deploy-via-the-webflow-api-bun-run-deploy) for the full flow.
+Settings for `bun run deploy`. **Most users should leave this empty and configure deploy via `.env.local` instead** (see [Production → Strategy C](./production.md#strategy-c-auto-deploy-via-the-webflow-api-bun-run-deploy)). The config block exists for shipping a viteflow template with committed defaults; env values always win over it.
 
 ```ts
 deploy: {
@@ -73,13 +73,13 @@ deploy: {
 }
 ```
 
-#### `deploy.siteId` (`string`)
+#### `deploy.siteId` (optional, `string`)
 
-Your Webflow Site ID. Find it at **Site Settings → General → Site ID**. Falls back to the `WEBFLOW_SITE_ID` env var if omitted, which is useful for per-developer or CI overrides.
+Webflow Site ID. **Prefer `WEBFLOW_SITE_ID` in `.env.local`** — that's read first. Setting `deploy.siteId` here only makes sense as a committed default for a template repo.
 
 #### `deploy.customDomains` (optional, `string[]`)
 
-Custom domain IDs (not URLs) to publish to when running `bun run deploy --live`. Look them up via:
+Custom domain IDs (not URLs) to publish to when running `bun run deploy --live`. **Prefer `WEBFLOW_CUSTOM_DOMAINS` in `.env.local`** (comma-separated). Look IDs up via:
 
 ```sh
 curl -H "Authorization: Bearer $WEBFLOW_API_TOKEN" \
@@ -151,28 +151,35 @@ To customize rules, edit `biome.json`. See [Biome's docs](https://biomejs.dev/re
 
 Two purposes:
 
-1. **Override `viteflow.config.ts` values** without editing the file. Useful for per-developer overrides, CI/CD, or working against a different staging site temporarily.
+1. **Configure viteflow itself.** `.env.local` is the recommended primary source — `viteflow.config.ts` is a fallback for committed defaults (useful when shipping a template). Env values always win.
 2. **Inject build-time constants into client code** via Vite's standard `import.meta.env`.
 
-### Override config
+### Configure via `.env.local`
 
-Create `.env.local` at the project root (gitignored). Set:
+Create `.env.local` at the project root (gitignored). Set whichever of these you need:
 
 ```
+# Dev server:
 WEBFLOW_STAGING_URL=https://my-other-staging.webflow.io
 PORT=4000
 
-# Required for `bun run deploy`:
+# Auto-deploy (`bun run deploy`):
 WEBFLOW_API_TOKEN=wfpat_...
-WEBFLOW_SITE_ID=6123abc...   # optional override of deploy.siteId
+WEBFLOW_SITE_ID=6123abc...
+WEBFLOW_CUSTOM_DOMAINS=domain-id-1,domain-id-2   # only needed for --live
 ```
 
-`vite.config.ts` reads these via `loadEnv` and merges them on top of `viteflow.config.ts` before passing to the proxy plugin. Precedence (high to low):
+Precedence is always **env > config file**. Pairings:
 
-1. `WEBFLOW_STAGING_URL` env var (`.env.local`, `.env`, or shell)
-2. `webflowStagingUrl` in `viteflow.config.ts`
+| Setting | Env var | `viteflow.config.ts` field |
+|---|---|---|
+| Webflow staging URL | `WEBFLOW_STAGING_URL` | `webflowStagingUrl` |
+| Dev server port | `PORT` | `port` |
+| Webflow Site ID (for deploy) | `WEBFLOW_SITE_ID` | `deploy.siteId` |
+| Custom domain IDs (for `--live`) | `WEBFLOW_CUSTOM_DOMAINS` (comma-separated) | `deploy.customDomains` |
+| Webflow API token | `WEBFLOW_API_TOKEN` | *(env-only — never lives in the config file)* |
 
-The same applies to `PORT` and `WEBFLOW_SITE_ID`. `openOnDev` is config-only.
+`openOnDev` is config-only.
 
 `WEBFLOW_API_TOKEN` is read **only** by `viteflow/deploy.ts` — never by Vite or by your `/src` code — so it can't end up in `dist/main.js`.
 
