@@ -17,26 +17,6 @@ export type CreateAssetResponse = {
 	contentType?: string;
 };
 
-export type RegisteredScript = {
-	id: string;
-	displayName?: string;
-	hostedLocation?: string;
-	integrityHash?: string;
-	version?: string;
-};
-
-export type AppliedScript = {
-	id: string;
-	location: 'header' | 'footer';
-	version: string;
-	attributes?: Record<string, string>;
-};
-
-export type AppliedCustomCodeBlock = {
-	type: 'site' | 'page';
-	scripts?: AppliedScript[];
-};
-
 export class WebflowApiError extends Error {
 	status: number;
 	body: string;
@@ -76,17 +56,15 @@ export class WebflowApi {
 			let hint = '';
 			if (res.status === 403 && text.includes('invalid_auth_version')) {
 				hint =
-					'\n\n[viteflow] 403 invalid_auth_version. Two common causes:' +
-					'\n  1. WEBFLOW_SITE_ID points to a site this token cannot access. ' +
-					'Check `curl -H "Authorization: Bearer $WEBFLOW_API_TOKEN" https://api.webflow.com/v2/sites` ' +
-					'to see which sites the token can reach, and copy the right id.' +
-					'\n  2. The token is a legacy v1 site token. Generate a fresh one at ' +
-					'Webflow → Site Settings → Apps & Integrations → API access (existing v1 ' +
-					'tokens show a "legacy API" warning) and update WEBFLOW_API_TOKEN.';
+					'\n\n[viteflow] 403 invalid_auth_version. Common causes:' +
+					'\n  1. WEBFLOW_SITE_ID points to a site this token cannot access. Check ' +
+					'`curl -H "Authorization: Bearer $WEBFLOW_API_TOKEN" https://api.webflow.com/v2/sites`.' +
+					'\n  2. Token is a legacy v1 site token. Generate a fresh one at ' +
+					'Webflow → Site Settings → Apps & Integrations → API access.';
 			} else if (res.status === 403 && text.includes('missing_scopes')) {
 				hint =
 					'\n\n[viteflow] Token is missing required scopes. ' +
-					'Regenerate it with custom_code:write, assets:write, and sites:write.';
+					'Regenerate it with assets:read and assets:write.';
 			}
 			throw new WebflowApiError(
 				res.status,
@@ -158,53 +136,5 @@ export class WebflowApi {
 
 	async deleteAsset(assetId: string): Promise<void> {
 		await this.request('DELETE', `/assets/${assetId}`);
-	}
-
-	async listRegisteredScripts(): Promise<RegisteredScript[]> {
-		const res = await this.request<{ registeredScripts?: RegisteredScript[] }>(
-			'GET',
-			`/sites/${this.siteId}/registered_scripts`,
-		);
-		return res.registeredScripts ?? [];
-	}
-
-	async registerHostedScript(input: {
-		hostedLocation: string;
-		integrityHash: string;
-		version: string;
-		displayName: string;
-		canCopy?: boolean;
-	}): Promise<RegisteredScript> {
-		return this.request<RegisteredScript>(
-			'POST',
-			`/sites/${this.siteId}/registered_scripts/hosted`,
-			input,
-		);
-	}
-
-	async deleteRegisteredScript(scriptId: string): Promise<void> {
-		await this.request(
-			'DELETE',
-			`/sites/${this.siteId}/registered_scripts/${scriptId}`,
-		);
-	}
-
-	async getAppliedCustomCode(): Promise<AppliedScript[]> {
-		const res = await this.request<{ scripts?: AppliedScript[] }>(
-			'GET',
-			`/sites/${this.siteId}/custom_code`,
-		);
-		return res.scripts ?? [];
-	}
-
-	async upsertCustomCode(scripts: AppliedScript[]): Promise<void> {
-		await this.request('PUT', `/sites/${this.siteId}/custom_code`, { scripts });
-	}
-
-	async publish(input: {
-		publishToWebflowSubdomain: boolean;
-		customDomains?: string[];
-	}): Promise<void> {
-		await this.request('POST', `/sites/${this.siteId}/publish`, input);
 	}
 }

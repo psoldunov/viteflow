@@ -13,11 +13,10 @@ export default defineConfig({
 	openOnDev: true,
 
 	/**
-	 * Settings for `bun run deploy`. Uncomment and fill in to enable auto-deploy.
-	 * Requires WEBFLOW_API_TOKEN in .env.local.
+	 * Settings for `bun run deploy`. Prefer setting WEBFLOW_SITE_ID in .env.local
+	 * over editing this — env always wins. Uncomment for committed defaults.
 	 */
 	// deploy: {
 	// 	siteId: 'your-webflow-site-id',
-	// 	customDomains: [],
 	// },
 });

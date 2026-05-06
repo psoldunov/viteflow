@@ -3,44 +3,12 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type { ViteflowConfig } from './config';
+import { VITEFLOW_BUNDLE_MARKER } from './marker';
 import { WebflowApi } from './webflow-api';
 
 const ASSET_PREFIX = 'viteflow-bundle-';
 const ASSET_SUFFIX = '.js.txt';
-const SCRIPT_DISPLAY_NAME = 'viteflow-bundle';
 const BUNDLE_PATH = 'dist/main.js';
-
-type CliOptions = {
-	publish: boolean;
-	live: boolean;
-};
-
-function parseArgs(argv: string[]): CliOptions {
-	const opts: CliOptions = { publish: true, live: false };
-	for (const arg of argv) {
-		if (arg === '--no-publish') opts.publish = false;
-		else if (arg === '--live') opts.live = true;
-		else if (arg === '--help' || arg === '-h') {
-			console.log(
-				[
-					'Usage: bun viteflow/deploy.ts [options]',
-					'',
-					'Builds dist/main.js, uploads it to Webflow as an asset, registers a',
-					'hosted script, applies it just before </body>, and publishes the site.',
-					'',
-					'Options:',
-					'  --no-publish   Apply the script but skip the publish step.',
-					'  --live         Also publish to deploy.customDomains. Default is staging only.',
-					'  -h, --help     Show this help.',
-				].join('\n'),
-			);
-			process.exit(0);
-		} else {
-			throw new Error(`Unknown deploy flag: ${arg}`);
-		}
-	}
-	return opts;
-}
 
 async function loadConfig(): Promise<ViteflowConfig> {
 	const path = resolve(process.cwd(), 'viteflow.config.ts');
@@ -59,31 +27,36 @@ function md5Hex(bytes: Uint8Array): string {
 	return createHash('md5').update(bytes).digest('hex');
 }
 
-function sriSha384(bytes: Uint8Array): string {
-	return `sha384-${createHash('sha384').update(bytes).digest('base64')}`;
-}
-
-function nowVersion(): string {
-	return `1.0.${Math.floor(Date.now() / 1000)}`;
-}
-
 function shortNumber(n: number): string {
 	if (n < 1024) return `${n} B`;
 	if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
 	return `${(n / (1024 * 1024)).toFixed(2)} MB`;
 }
 
-function parseDomains(raw: string | undefined): string[] | undefined {
-	if (!raw) return undefined;
-	const ids = raw
-		.split(',')
-		.map((s) => s.trim())
-		.filter(Boolean);
-	return ids.length > 0 ? ids : undefined;
+function checkArgs(argv: string[]): void {
+	for (const arg of argv) {
+		if (arg === '--help' || arg === '-h') {
+			console.log(
+				[
+					'Usage: bun viteflow/deploy.ts',
+					'',
+					'Builds dist/main.js, uploads it to Webflow as a site asset, and prints',
+					'a <script> tag for you to paste into Webflow → Project Settings → Custom',
+					'Code → Footer Code. Re-running the script wipes the previous viteflow',
+					'asset and gives you a new tag to paste.',
+					'',
+					'The printed tag is marked with `data-viteflow-bundle` so `bun dev` knows',
+					'to strip it from the proxied page — no double-loading during development.',
+				].join('\n'),
+			);
+			process.exit(0);
+		}
+		throw new Error(`Unknown deploy flag: ${arg}`);
+	}
 }
 
 async function main(): Promise<void> {
-	const opts = parseArgs(process.argv.slice(2));
+	checkArgs(process.argv.slice(2));
 	const config = await loadConfig();
 
 	const siteId = (
@@ -92,9 +65,6 @@ async function main(): Promise<void> {
 		''
 	).trim();
 	const token = (process.env.WEBFLOW_API_TOKEN ?? '').trim();
-	const customDomains =
-		parseDomains(process.env.WEBFLOW_CUSTOM_DOMAINS) ??
-		config.deploy?.customDomains;
 
 	if (!siteId) {
 		throw new Error(
@@ -103,7 +73,7 @@ async function main(): Promise<void> {
 	}
 	if (!token) {
 		throw new Error(
-			'[viteflow] Missing WEBFLOW_API_TOKEN. Add it to .env.local. The token needs custom_code:write, assets:write, and sites:write scopes.',
+			'[viteflow] Missing WEBFLOW_API_TOKEN. Add it to .env.local. The token needs the assets:read and assets:write scopes.',
 		);
 	}
 
@@ -119,29 +89,13 @@ async function main(): Promise<void> {
 
 	const bytes = new Uint8Array(bundle);
 	const md5 = md5Hex(bytes);
-	const sri = sriSha384(bytes);
 	const fileName = `${ASSET_PREFIX}${Date.now()}${ASSET_SUFFIX}`;
-	const version = nowVersion();
 
 	console.log(
-		`[viteflow] bundle: ${shortNumber(bytes.byteLength)}, md5=${md5}, sri=${sri.slice(0, 24)}…`,
+		`[viteflow] bundle: ${shortNumber(bytes.byteLength)}, md5=${md5}`,
 	);
 
 	const api = new WebflowApi(token, siteId);
-
-	console.log('[viteflow] looking up existing viteflow scripts…');
-	const allScripts = await api.listRegisteredScripts();
-	const staleScriptIds = new Set(
-		allScripts
-			.filter((s) => s.displayName === SCRIPT_DISPLAY_NAME)
-			.map((s) => s.id),
-	);
-	const applied = await api.getAppliedCustomCode();
-	const keepApplied = applied.filter((s) => !staleScriptIds.has(s.id));
-
-	console.log(
-		`[viteflow] found ${staleScriptIds.size} stale registered script(s); preserving ${keepApplied.length} other applied script(s).`,
-	);
 
 	console.log('[viteflow] uploading bundle as Webflow asset…');
 	const created = await api.createAsset(fileName, md5);
@@ -160,47 +114,13 @@ async function main(): Promise<void> {
 	}
 	console.log(`[viteflow] uploaded → ${hostedUrl}`);
 
-	console.log('[viteflow] registering hosted script…');
-	const registered = await api.registerHostedScript({
-		hostedLocation: hostedUrl,
-		integrityHash: sri,
-		version,
-		displayName: SCRIPT_DISPLAY_NAME,
-		canCopy: true,
-	});
-
-	console.log('[viteflow] applying script to footer (before </body>)…');
-	await api.upsertCustomCode([
-		...keepApplied,
-		{
-			id: registered.id,
-			version,
-			location: 'footer',
-			attributes: { 'data-viteflow': '' },
-		},
-	]);
-
-	if (staleScriptIds.size > 0) {
-		console.log(
-			`[viteflow] cleaning up ${staleScriptIds.size} old registered script(s)…`,
-		);
-		for (const id of staleScriptIds) {
-			try {
-				await api.deleteRegisteredScript(id);
-			} catch (err) {
-				console.warn(
-					`[viteflow] could not delete old script ${id}: ${(err as Error).message}`,
-				);
-			}
-		}
-	}
-
 	console.log('[viteflow] cleaning up old viteflow asset(s)…');
 	const assets = await api.listAssets();
-	const stale = assets.filter((a) =>
-		(a.originalFileName ?? a.displayName ?? '').startsWith(ASSET_PREFIX),
+	const oldAssets = assets.filter(
+		(a) =>
+			a.id !== created.id &&
+			(a.originalFileName ?? a.displayName ?? '').startsWith(ASSET_PREFIX),
 	);
-	const oldAssets = stale.filter((a) => a.id !== created.id);
 	for (const a of oldAssets) {
 		try {
 			await api.deleteAsset(a.id);
@@ -214,24 +134,26 @@ async function main(): Promise<void> {
 		console.log(`[viteflow] deleted ${oldAssets.length} old asset(s).`);
 	}
 
-	if (!opts.publish) {
-		console.log('[viteflow] --no-publish set; skipping publish.');
-		console.log('[viteflow] done.');
-		return;
-	}
+	const scriptTag = `<script src="${hostedUrl}" ${VITEFLOW_BUNDLE_MARKER} defer></script>`;
 
-	const liveDomains = opts.live ? customDomains : undefined;
+	const sep = '─'.repeat(72);
+	console.log('');
+	console.log(sep);
 	console.log(
-		`[viteflow] publishing (subdomain${opts.live ? ' + custom domains' : ''})…`,
+		'Paste this into Webflow → Project Settings → Custom Code → Footer Code,',
 	);
-	await api.publish({
-		publishToWebflowSubdomain: true,
-		...(liveDomains && liveDomains.length > 0
-			? { customDomains: liveDomains }
-			: {}),
-	});
-
-	console.log('[viteflow] done.');
+	console.log('then click Save Changes and Publish.');
+	console.log('');
+	console.log(scriptTag);
+	console.log('');
+	console.log(
+		`The "${VITEFLOW_BUNDLE_MARKER}" attribute lets "bun dev" strip this tag`,
+	);
+	console.log(
+		'from proxied pages so the deployed bundle and the localhost dev bundle',
+	);
+	console.log('never run side-by-side.');
+	console.log(sep);
 }
 
 main().catch((err) => {

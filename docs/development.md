@@ -7,7 +7,7 @@ This page explains how the dev server works, what you can do with it, and how to
 `bun dev` starts Vite. A custom Vite plugin (`viteflow/plugin-webflow-proxy.ts`) adds catch-all middleware that:
 
 1. Lets Vite handle requests it knows about (your TS modules, the HMR client, source maps).
-2. For everything else, fetches the same path from `webflowStagingUrl`, returns it. If the response is HTML, it injects the Vite HMR client and a `<script type="module" src="/viteflow/main.ts" data-viteflow></script>` tag before `</body>`.
+2. For everything else, fetches the same path from `webflowStagingUrl`, returns it. If the response is HTML, it (a) **strips any `<script ... data-viteflow-bundle ...></script>` tag** from the markup so a previously deployed bundle doesn't run alongside your dev code, and (b) injects the Vite HMR client and a `<script type="module" src="/viteflow/main.ts" data-viteflow></script>` tag before `</body>`.
 
 You navigate around `http://localhost:5173/` exactly as if it were your live Webflow site. Your `/src` code runs on top of it. Edits hot-reload.
 

@@ -1,16 +1,9 @@
 export type ViteflowDeployConfig = {
 	/**
 	 * Webflow Site ID (24-char hex). Find it in Site Settings → General → Site ID.
-	 * Falls back to the WEBFLOW_SITE_ID env var if omitted.
+	 * Prefer the WEBFLOW_SITE_ID env var; this is a committed-defaults fallback.
 	 */
 	siteId?: string;
-
-	/**
-	 * IDs of custom domains to publish to on `bun run deploy --live`.
-	 * Look these up via the Webflow API (`GET /v2/sites/{site_id}/custom_domains`).
-	 * The Webflow staging subdomain is always published — this is for production only.
-	 */
-	customDomains?: string[];
 };
 
 export type ViteflowConfig = {
@@ -90,18 +83,6 @@ function validate(config: ViteflowConfig): ViteflowConfig {
 				config.deploy.siteId.length === 0
 			) {
 				throw new Error('[viteflow] deploy.siteId must be a non-empty string.');
-			}
-		}
-		if (config.deploy.customDomains !== undefined) {
-			if (!Array.isArray(config.deploy.customDomains)) {
-				throw new Error('[viteflow] deploy.customDomains must be an array.');
-			}
-			for (const id of config.deploy.customDomains) {
-				if (typeof id !== 'string' || id.length === 0) {
-					throw new Error(
-						'[viteflow] deploy.customDomains entries must be non-empty strings.',
-					);
-				}
 			}
 		}
 	}

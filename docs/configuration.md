@@ -64,29 +64,17 @@ If the port is taken, Vite auto-increments. So if `5173` is busy, you get `5174`
 
 ### `deploy` (optional, `object`)
 
-Settings for `bun run deploy`. **Most users should leave this empty and configure deploy via `.env.local` instead** (see [Production → Strategy C](./production.md#strategy-c-auto-deploy-via-the-webflow-api-bun-run-deploy)). The config block exists for shipping a viteflow template with committed defaults; env values always win over it.
+Settings for `bun run deploy`. **Most users should leave this empty and configure deploy via `.env.local` instead** (see [Production → Strategy C](./production.md#strategy-c-upload-to-webflow--paste-a-generated-tag-bun-run-deploy)). The config block exists for shipping a viteflow template with committed defaults; env values always win over it.
 
 ```ts
 deploy: {
 	siteId: '6123abc...',
-	customDomains: ['603343111111111111111111'],
 }
 ```
 
 #### `deploy.siteId` (optional, `string`)
 
 Webflow Site ID. **Prefer `WEBFLOW_SITE_ID` in `.env.local`** — that's read first. Setting `deploy.siteId` here only makes sense as a committed default for a template repo.
-
-#### `deploy.customDomains` (optional, `string[]`)
-
-Custom domain IDs (not URLs) to publish to when running `bun run deploy --live`. **Prefer `WEBFLOW_CUSTOM_DOMAINS` in `.env.local`** (comma-separated). Look IDs up via:
-
-```sh
-curl -H "Authorization: Bearer $WEBFLOW_API_TOKEN" \
-     https://api.webflow.com/v2/sites/$WEBFLOW_SITE_ID/custom_domains
-```
-
-The Webflow staging subdomain is always published — this list is for production domains only.
 
 ### `openOnDev` (optional, `boolean`, default `true`)
 
@@ -163,10 +151,9 @@ Create `.env.local` at the project root (gitignored). Set whichever of these you
 WEBFLOW_STAGING_URL=https://my-other-staging.webflow.io
 PORT=4000
 
-# Auto-deploy (`bun run deploy`):
-WEBFLOW_API_TOKEN=wfpat_...
+# Deploy (`bun run deploy`):
+WEBFLOW_API_TOKEN=...
 WEBFLOW_SITE_ID=6123abc...
-WEBFLOW_CUSTOM_DOMAINS=domain-id-1,domain-id-2   # only needed for --live
 ```
 
 Precedence is always **env > config file**. Pairings:
@@ -176,7 +163,6 @@ Precedence is always **env > config file**. Pairings:
 | Webflow staging URL | `WEBFLOW_STAGING_URL` | `webflowStagingUrl` |
 | Dev server port | `PORT` | `port` |
 | Webflow Site ID (for deploy) | `WEBFLOW_SITE_ID` | `deploy.siteId` |
-| Custom domain IDs (for `--live`) | `WEBFLOW_CUSTOM_DOMAINS` (comma-separated) | `deploy.customDomains` |
 | Webflow API token | `WEBFLOW_API_TOKEN` | *(env-only — never lives in the config file)* |
 
 `openOnDev` is config-only.
