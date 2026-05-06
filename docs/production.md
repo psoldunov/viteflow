@@ -93,10 +93,12 @@ Best for: hands-off deploys, CI pipelines, anyone who'd rather not paste code.
 
 **Setup:**
 
-1. Create an API token in Webflow: **Site Settings → Apps & Integrations → API access**. Grant scopes:
+1. Create a **v2** API token in Webflow: **Site Settings → Apps & Integrations → API access → Generate API token**. Grant scopes:
    - `custom_code:write`
    - `assets:write`
    - `sites:write`
+
+   ⚠ **Must be a v2 token.** Webflow has stopped issuing v1 tokens, but if you have an existing one it will show a "legacy API" warning — that token won't work and returns `403 invalid_auth_version`. Generate a fresh one.
 2. Find your **Site ID** at **Site Settings → General → Site ID**.
 3. Copy `.env.example` to `.env.local` and set:
 

@@ -73,10 +73,22 @@ export class WebflowApi {
 
 		if (!res.ok) {
 			const text = await res.text();
+			let hint = '';
+			if (res.status === 403 && text.includes('invalid_auth_version')) {
+				hint =
+					'\n\n[viteflow] Your token is a legacy v1 site token. ' +
+					'Generate a v2 token at Webflow → Site Settings → Apps & Integrations → API access ' +
+					'(create a new token; existing v1 tokens show a "legacy API" warning), ' +
+					'then update WEBFLOW_API_TOKEN in .env.local.';
+			} else if (res.status === 403 && text.includes('missing_scopes')) {
+				hint =
+					'\n\n[viteflow] Token is missing required scopes. ' +
+					'Regenerate it with custom_code:write, assets:write, and sites:write.';
+			}
 			throw new WebflowApiError(
 				res.status,
 				text,
-				`Webflow API ${method} ${path} → ${res.status} ${res.statusText}: ${text}`,
+				`Webflow API ${method} ${path} → ${res.status} ${res.statusText}: ${text}${hint}`,
 			);
 		}
 
