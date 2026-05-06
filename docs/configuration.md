@@ -62,6 +62,32 @@ port: 3000;
 
 If the port is taken, Vite auto-increments. So if `5173` is busy, you get `5174` and a log line about it.
 
+### `deploy` (optional, `object`)
+
+Settings for `bun run deploy`. Omit if you publish manually. See [Production → Strategy C](./production.md#strategy-c-auto-deploy-via-the-webflow-api-bun-run-deploy) for the full flow.
+
+```ts
+deploy: {
+	siteId: '6123abc...',
+	customDomains: ['603343111111111111111111'],
+}
+```
+
+#### `deploy.siteId` (`string`)
+
+Your Webflow Site ID. Find it at **Site Settings → General → Site ID**. Falls back to the `WEBFLOW_SITE_ID` env var if omitted, which is useful for per-developer or CI overrides.
+
+#### `deploy.customDomains` (optional, `string[]`)
+
+Custom domain IDs (not URLs) to publish to when running `bun run deploy --live`. Look them up via:
+
+```sh
+curl -H "Authorization: Bearer $WEBFLOW_API_TOKEN" \
+     https://api.webflow.com/v2/sites/$WEBFLOW_SITE_ID/custom_domains
+```
+
+The Webflow staging subdomain is always published — this list is for production domains only.
+
 ### `openOnDev` (optional, `boolean`, default `true`)
 
 When `true`, `bun dev` opens your default browser at `http://localhost:PORT/` after the server boots.
@@ -135,6 +161,10 @@ Create `.env.local` at the project root (gitignored). Set:
 ```
 WEBFLOW_STAGING_URL=https://my-other-staging.webflow.io
 PORT=4000
+
+# Required for `bun run deploy`:
+WEBFLOW_API_TOKEN=wfpat_...
+WEBFLOW_SITE_ID=6123abc...   # optional override of deploy.siteId
 ```
 
 `vite.config.ts` reads these via `loadEnv` and merges them on top of `viteflow.config.ts` before passing to the proxy plugin. Precedence (high to low):
@@ -142,7 +172,9 @@ PORT=4000
 1. `WEBFLOW_STAGING_URL` env var (`.env.local`, `.env`, or shell)
 2. `webflowStagingUrl` in `viteflow.config.ts`
 
-The same applies to `PORT`. `openOnDev` is config-only.
+The same applies to `PORT` and `WEBFLOW_SITE_ID`. `openOnDev` is config-only.
+
+`WEBFLOW_API_TOKEN` is read **only** by `viteflow/deploy.ts` — never by Vite or by your `/src` code — so it can't end up in `dist/main.js`.
 
 Supported env files (Vite convention, picked up automatically):
 

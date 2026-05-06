@@ -26,9 +26,9 @@ Defaults:
 
 A typical bundle is a few KB if you write vanilla DOM code, or 100–300 KB if you bring GSAP and similar libraries.
 
-## Two deployment strategies
+## Three deployment strategies
 
-You have two choices for shipping `dist/main.js` to your Webflow site.
+You have three choices for shipping `dist/main.js` to your Webflow site.
 
 ### Strategy A: Paste inline into Webflow Custom Code (simplest)
 
@@ -84,6 +84,60 @@ In Webflow Custom Code → Footer Code, reference it:
 Publish. Done.
 
 To update: rebuild, upload the new `main.js` (overwrite or version it), and the next page load picks it up. Use cache-busting via query string or content-hashed filenames if you cache aggressively.
+
+### Strategy C: Auto-deploy via the Webflow API (`bun run deploy`)
+
+Best for: hands-off deploys, CI pipelines, anyone who'd rather not paste code.
+
+`bun run deploy` builds the bundle, uploads it to Webflow as a site asset, registers it as a hosted custom-code script applied to the footer (just before `</body>`), and publishes the site. Re-running it replaces the previous viteflow script and wipes the old asset — no duplicates, no manual cleanup.
+
+**Setup:**
+
+1. Create an API token in Webflow: **Site Settings → Apps & Integrations → API access**. Grant scopes:
+   - `custom_code:write`
+   - `assets:write`
+   - `sites:write`
+2. Find your **Site ID** at **Site Settings → General → Site ID**.
+3. Copy `.env.example` to `.env.local` and set:
+
+   ```
+   WEBFLOW_API_TOKEN=wfpat_...
+   ```
+
+4. Set `deploy.siteId` in `viteflow.config.ts` (or set `WEBFLOW_SITE_ID` in `.env.local` to override per-developer):
+
+   ```ts
+   export default defineConfig({
+   	webflowStagingUrl: 'https://your-site.webflow.io',
+   	deploy: {
+   		siteId: '6123abc...',
+   	},
+   });
+   ```
+
+**Run:**
+
+```sh
+bun run deploy            # build, upload, apply, publish to staging subdomain
+bun run deploy --no-publish   # apply without publishing (preview in Webflow Designer)
+bun run deploy --live     # also publish to deploy.customDomains
+```
+
+**How it works (and the one caveat):**
+
+- The bundle is uploaded as `viteflow-bundle-<timestamp>.js.txt`. Webflow's Assets API doesn't accept raw `.js`, but it accepts `.txt`. Browsers run `<script src="...txt">` tags fine because classic scripts don't strictly enforce JS MIME — but if Webflow's CDN ever starts sending `X-Content-Type-Options: nosniff` with `text/plain` for assets, this will stop working. Today (2026), it works reliably.
+- viteflow tags the registered script with `displayName: "viteflow-bundle"`. On every deploy it lists registered scripts, removes any with that name, and only the new one is applied. Other scripts you've applied via the Webflow UI or other integrations are preserved.
+- The API has a publish rate limit of **1 per minute**. Back-to-back `bun run deploy` calls within a minute will succeed up to the apply step but fail at publish; just wait a minute and re-run, or use `--no-publish` then publish manually.
+- Each deploy creates a fresh asset URL with a fresh SRI hash. Webflow's CDN edge cache is bypassed, so changes show up on the next page load (no `?v=` cache-bust needed).
+
+**To get custom domain IDs** (for `deploy.customDomains`):
+
+```sh
+curl -H "Authorization: Bearer $WEBFLOW_API_TOKEN" \
+     https://api.webflow.com/v2/sites/$WEBFLOW_SITE_ID/custom_domains
+```
+
+Copy each domain `id` (not the URL) into the array.
 
 #### Cache-busting
 

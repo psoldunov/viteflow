@@ -7,6 +7,7 @@ All scripts defined in `package.json`. Run with `bun run <name>` or the `bun <na
 | `bun dev` | Start the dev server. Boots Vite with the Webflow proxy plugin, opens your browser at `http://localhost:5173/` (configurable via `viteflow.config.ts`). HMR + source maps active. |
 | `bun run build` | Build for production. Produces `dist/main.js` (minified IIFE with embedded CSS) and `dist/main.js.map` (sourcemap). |
 | `bun run preview` | Run `vite preview`. Serves the built `dist/` at `http://localhost:4173/` so you can sanity-check the production bundle in isolation. |
+| `bun run deploy` | Build + auto-deploy to Webflow via the Data API. Uploads the bundle as a site asset, applies it as a footer custom-code script, and publishes the staging subdomain. Pass `--no-publish` to apply without publishing, or `--live` to also publish to `deploy.customDomains`. Requires `WEBFLOW_API_TOKEN` in `.env.local` and `deploy.siteId` (or `WEBFLOW_SITE_ID`). See [Production → Strategy C](./production.md#strategy-c-auto-deploy-via-the-webflow-api-bun-run-deploy). |
 | `bun run typecheck` | Run TypeScript in `--noEmit` mode. Prints type errors. Exit code is non-zero on failure (good for CI). |
 | `bun run lint` | Run Biome's linter only. Reports issues without modifying files. |
 | `bun run format` | Run Biome's formatter with `--write`. Reformats files in place. |
