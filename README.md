@@ -79,6 +79,18 @@ bun run build
 
 Single file `dist/main.js` (minified IIFE with embedded CSS) + `dist/main.js.map`. Paste into Webflow Custom Code or host on a CDN. See [Production](./docs/production.md).
 
+## Deploy
+
+Three ways to ship the bundle to your Webflow site:
+
+- **Paste inline** — copy `dist/main.js` into Project Settings → Custom Code → Footer Code. Simplest, but capped by Webflow's Custom Code character limit.
+- **Host on a CDN** — upload `dist/main.js` anywhere (GitHub Pages, Cloudflare, Vercel, jsDelivr…) and reference it from Footer Code with `<script src="…" defer>`.
+- **`bun run deploy`** — builds, uploads the bundle to Webflow as a site asset, deletes the previous viteflow asset, and prints a `<script>` tag for you to paste into Footer Code. Requires `WEBFLOW_API_TOKEN` and `WEBFLOW_SITE_ID` in `.env.local` (token needs `assets:read` + `assets:write`).
+
+`bun run deploy` tags emit a `data-viteflow-bundle` attribute, and `bun dev` strips matching tags from the proxied page so the deployed and dev bundles never run side-by-side.
+
+See [Production](./docs/production.md) for the full walkthrough, cache-busting, rollback, and CI examples.
+
 ## Layout
 
 ```
