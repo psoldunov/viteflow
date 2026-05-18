@@ -8,8 +8,7 @@ type Route = {
 	paramNames: string[];
 	handler: RouteHandler;
 	filePath: string;
-	literalCount: number;
-	paramCount: number;
+	segments: string[];
 };
 
 function escapeLiteral(seg: string): string {
@@ -72,7 +71,6 @@ function buildRoutes(): {
 
 		const { regex, paramNames } = compile(pattern);
 		const segments = pattern.split('/').filter(Boolean);
-		const literalCount = segments.filter((s) => !s.startsWith(':')).length;
 
 		routes.push({
 			pattern,
@@ -80,15 +78,24 @@ function buildRoutes(): {
 			paramNames,
 			handler: mod.default,
 			filePath,
-			literalCount,
-			paramCount: paramNames.length,
+			segments,
 		});
 	}
 
 	routes.sort((a, b) => {
-		if (a.literalCount !== b.literalCount)
-			return b.literalCount - a.literalCount;
-		return a.paramCount - b.paramCount;
+		const len = Math.max(a.segments.length, b.segments.length);
+		for (let i = 0; i < len; i++) {
+			const aSeg = a.segments[i];
+			const bSeg = b.segments[i];
+			if (aSeg === bSeg) continue;
+			if (aSeg === undefined) return -1;
+			if (bSeg === undefined) return 1;
+			const aDyn = aSeg.startsWith(':');
+			const bDyn = bSeg.startsWith(':');
+			if (aDyn !== bDyn) return aDyn ? 1 : -1;
+			return aSeg < bSeg ? -1 : 1;
+		}
+		return 0;
 	});
 
 	return { routes, globalHandler };

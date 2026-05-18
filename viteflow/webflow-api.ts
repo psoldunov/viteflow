@@ -82,18 +82,19 @@ export class WebflowApi {
 	async listAssets(): Promise<Asset[]> {
 		const all: Asset[] = [];
 		const limit = 100;
-		let offset = 0;
-		while (true) {
+		const maxPages = 200;
+		for (let page = 0; page < maxPages; page++) {
 			const res = await this.request<{ assets?: Asset[] }>(
 				'GET',
-				`/sites/${this.siteId}/assets?limit=${limit}&offset=${offset}`,
+				`/sites/${this.siteId}/assets?limit=${limit}&offset=${page * limit}`,
 			);
-			const page = res.assets ?? [];
-			all.push(...page);
-			if (page.length < limit) break;
-			offset += limit;
+			const items = res.assets ?? [];
+			all.push(...items);
+			if (items.length < limit) return all;
 		}
-		return all;
+		throw new Error(
+			`[viteflow] listAssets exceeded ${maxPages} pages (${maxPages * limit} assets). Aborting to prevent runaway pagination.`,
+		);
 	}
 
 	async createAsset(
