@@ -31,7 +31,7 @@ function fullReloadOnProjectChanges(): Plugin {
 	};
 }
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ command, mode }) => {
 	const fileEnv = loadEnv(mode, process.cwd(), '');
 	// Shell env (process.env) wins over .env files; both win over viteflow.config.ts.
 	const stagingFromEnv = (
@@ -47,6 +47,11 @@ export default defineConfig(({ mode }) => {
 	const port = Number(portFromEnv) || viteflowConfig.port || 5173;
 
 	return {
+		define: {
+			'process.env.NODE_ENV': JSON.stringify(
+				command === 'build' ? 'production' : 'development',
+			),
+		},
 		plugins: [
 			fullReloadOnProjectChanges(),
 			pluginWebflowProxy(viteflowConfig),
