@@ -51,7 +51,7 @@ Three responsibilities:
 
 1. Import the router.
 2. Run `dispatch` on initial page load.
-3. Re-run `dispatch` when the router module hot-updates (HMR only — `import.meta.hot` is `undefined` in production).
+3. Include an HMR fallback that can re-run `dispatch` if you remove the default full-reload plugin (`import.meta.hot` is `undefined` in production).
 
 This is the only file the user's HTML loads. Everything else is reachable transitively.
 
@@ -60,7 +60,10 @@ This is the only file the user's HTML loads. Everything else is reachable transi
 ### Discovery
 
 ```ts
-const modules = import.meta.glob<RouteModule>('/src/**/*.ts', { eager: true });
+const modules = import.meta.glob<RouteModule>(
+	['/src/**/*.ts', '/src/**/*.tsx', '!/src/**/_*/**'],
+	{ eager: true },
+);
 ```
 
 Vite resolves this glob at build time:
@@ -70,7 +73,7 @@ Vite resolves this glob at build time:
 ### Filtering
 
 For each entry:
-1. If `filePath === '/src/_global.ts'`, store its default export as the global handler. Skip route-table entry. (The explicit check runs before the underscore-prefix filter below, so the global file still loads even though its name starts with `_`.)
+1. If `filePath` is `/src/_global.ts` or `/src/_global.tsx`, store its default export as the global handler. Skip route-table entry. (The explicit check runs before the underscore-prefix filter below, so the global file still loads even though its name starts with `_`.)
 2. If any path segment starts with `_`, skip silently (private utility).
 3. If the module has no default function export, skip with a console warning.
 4. Otherwise, convert the file path to a route pattern and add to the route table.
@@ -79,15 +82,15 @@ For each entry:
 
 ```
 /src/index.ts             →  /
-/src/about.ts             →  /about
+/src/about.tsx            →  /about
 /src/blog.ts              →  /blog
-/src/blog/index.ts        →  /blog
+/src/blog/index.tsx       →  /blog
 /src/blog/[slug].ts       →  /blog/:slug
-/src/[a]/[b]/[c].ts       →  /:a/:b/:c
+/src/[a]/[b]/[c].tsx      →  /:a/:b/:c
 ```
 
 Algorithm:
-1. Strip leading `/src` and trailing `.ts`.
+1. Strip leading `/src` and trailing `.ts` or `.tsx`.
 2. If ends with `/index`, strip `/index`.
 3. If empty, set to `/`.
 4. Replace `[name]` with `:name`.
@@ -141,7 +144,7 @@ A Vite plugin that adds catch-all middleware to the dev server. Two layers:
 
 Serves anything in your source tree:
 - `/viteflow/main.ts` (transpiled to JS on the fly)
-- `/src/**/*.ts` (transpiled)
+- `/src/**/*.ts` and `/src/**/*.tsx` (transpiled)
 - `/src/**/*.css` (extracted, served, HMR-tracked)
 - `/@vite/client` (HMR client)
 - `/@id/*`, `/@fs/*`, `/node_modules/.vite/*` (Vite internals)
@@ -183,6 +186,7 @@ Streams the upstream body to the client, copying response headers (excluding hop
 ```ts
 export default defineConfig({
 	plugins: [
+		fullReloadOnProjectChanges(),
 		pluginWebflowProxy(viteflowConfig),
 		cssInjectedByJsPlugin({ topExecutionPriority: false }),
 	],
@@ -205,6 +209,7 @@ export default defineConfig({
 Key bits:
 
 - **`appType: 'custom'`**: tells Vite not to apply its default HTML serving / SPA fallback. We control non-asset URLs entirely via our middleware.
+- **`fullReloadOnProjectChanges`**: sends a full browser reload for project source changes in dev so Webflow DOM scripts restart cleanly.
 - **`build.lib`**: produces a library-style bundle. `formats: ['iife']` makes it self-contained and safe to drop into any HTML. `name: 'Viteflow'` names the global the IIFE attaches to (we don't actually use it, but lib mode requires it).
 - **`fileName: () => 'main.js'`**: forces the output filename regardless of format.
 - **`cssInjectedByJsPlugin`**: bridges the gap between Vite's lib mode (which would normally emit a separate `.css` file) and our goal of single-file output.
@@ -214,7 +219,7 @@ Key bits:
 `bun run build` → `vite build`:
 
 1. Vite walks the import graph from `viteflow/main.ts`.
-2. `import.meta.glob('/src/**/*.ts', { eager: true })` is statically replaced with inline imports of every matching file. Every route module is now part of the graph.
+2. `import.meta.glob(['/src/**/*.ts', '/src/**/*.tsx'], { eager: true })` is statically replaced with inline imports of every matching file. Every route module is now part of the graph.
 3. CSS imports are extracted, bundled, and handed to `cssInjectedByJsPlugin` which converts them to a `<style>` tag injection.
 4. esbuild minifies the JS.
 5. Output: `dist/main.js` (IIFE, ~3KB+) and `dist/main.js.map` (sourcemap).
@@ -223,7 +228,7 @@ Key bits:
 
 ### Why Vite, not webpack / esbuild / rollup directly?
 
-- Vite gives us native HMR for both JS and CSS for free.
+- Vite gives us fast transforms, source maps, and a websocket reload channel with very little setup.
 - Vite's plugin system is tiny and well-documented.
 - `import.meta.glob` is the killer feature — file-based routing without a custom build step.
 - esbuild is the underlying minifier already.

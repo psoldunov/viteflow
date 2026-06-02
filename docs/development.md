@@ -6,10 +6,10 @@ This page explains how the dev server works, what you can do with it, and how to
 
 `bun dev` starts Vite. A custom Vite plugin (`viteflow/plugin-webflow-proxy.ts`) adds catch-all middleware that:
 
-1. Lets Vite handle requests it knows about (your TS modules, the HMR client, source maps).
+1. Lets Vite handle requests it knows about (your TS/TSX modules, the Vite client, source maps).
 2. For everything else, fetches the same path from `webflowStagingUrl`, returns it. If the response is HTML, it (a) **strips any `<script ... data-viteflow-bundle ...></script>` tag** from the markup so a previously deployed bundle doesn't run alongside your dev code, and (b) injects the Vite HMR client and a `<script type="module" src="/viteflow/main.ts" data-viteflow></script>` tag before `</body>`.
 
-You navigate around `http://localhost:5173/` exactly as if it were your live Webflow site. Your `/src` code runs on top of it. Edits hot-reload.
+You navigate around `http://localhost:5173/` exactly as if it were your live Webflow site. Your `/src` code runs on top of it. Edits trigger a full browser reload.
 
 ## Request flow
 
@@ -60,33 +60,33 @@ Anything Vite cannot serve from your local source tree:
 What does **not** get proxied (Vite handles directly):
 
 - `/viteflow/main.ts` — your bundle entry, transformed on the fly
-- `/src/**/*.ts` — your route modules
+- `/src/**/*.ts` and `/src/**/*.tsx` — your route modules
 - `/@vite/client` — Vite's HMR client script
 - `/@id/*`, `/@fs/*`, `/node_modules/.vite/*` — Vite internals
-- `/src/**/*.css` — your stylesheets, served + HMR by Vite
+- `/src/**/*.css` — your stylesheets, served by Vite
 
-## Hot module replacement
+## Reload behavior
 
-When you save a file under `/src`:
+When you save a file under `/src` or `viteflow/`:
 
 1. Vite detects the file change.
-2. Vite re-imports the changed module and any modules that imported it.
-3. The router's `import.meta.glob` is reactive — it picks up new files, deleted files, and changed files.
-4. The bundle entry (`viteflow/main.ts`) declared `import.meta.hot.accept('./router', ...)`, so when the router updates, viteflow re-runs `dispatch(window.location.pathname)`.
+2. The template's `fullReloadOnProjectChanges` Vite plugin invalidates affected modules.
+3. Vite sends a `full-reload` message to the browser.
+4. The page reloads against the proxied Webflow HTML and re-runs your global and route handlers from scratch.
 
-Net effect: the global handler runs again, then the matched route handler runs again, **on the live page**. No reload.
+Net effect: changes appear immediately, but the DOM starts clean on every update. This avoids stale event listeners, duplicated widgets, and other side effects that can happen when DOM scripts are hot-swapped in place.
 
-For CSS, Vite injects a fresh `<style>` tag inline. Old `<style>` tags get replaced. You see the new styles immediately.
+CSS imported from `/src` also reloads the page in dev. Production still emits a single `dist/main.js` with embedded CSS.
 
-### When HMR triggers a full reload
+### When the dev server restarts
 
-A full page reload happens when:
+Some changes affect Vite itself instead of the browser runtime:
 
-- You add or remove a route file (the router rebuilds, but the new module graph requires a reload to pick up new imports cleanly).
 - You change `viteflow.config.ts` or `vite.config.ts` (the config is part of Vite's setup, not the runtime).
-- A handler crashes during HMR re-dispatch in a way that breaks subsequent re-runs.
+- You install or upgrade Vite plugins.
+- You change dependency optimization inputs.
 
-You'll see a console message from Vite when this happens.
+Vite usually restarts or asks you to restart `bun dev` when this happens.
 
 ## Console output
 
@@ -95,7 +95,7 @@ The dev server writes to **two places**:
 ### Terminal (server-side)
 
 - Vite startup banner with the local URL
-- Build / HMR notifications
+- Build / reload notifications
 - Proxy fetch errors (e.g. if your `webflowStagingUrl` is unreachable)
 
 ### Browser console (client-side)
@@ -103,13 +103,13 @@ The dev server writes to **two places**:
 - `[viteflow:global]` and `[viteflow:<route>]` logs from your handlers
 - `[viteflow] no route matched for /xyz` warnings
 - `[viteflow] handler error in /src/foo.ts (/foo)` errors
-- `[vite] hot updated: /src/foo.ts` notifications from Vite's HMR
+- `[vite] page reload ...` notifications from Vite
 
 Open DevTools → Console to see them.
 
 ## Source maps
 
-Inline source maps are enabled in dev. When your handler throws, the stack trace points at the original `.ts` file and line number, not the compiled output.
+Inline source maps are enabled in dev. When your handler throws, the stack trace points at the original `.ts` or `.tsx` file and line number, not the compiled output.
 
 In production, source maps are emitted as a separate `dist/main.js.map` file. You decide whether to ship it (helpful for error tracking) or strip it (smaller transfer).
 

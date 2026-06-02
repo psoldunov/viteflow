@@ -1,6 +1,6 @@
 # Getting Started
 
-This guide takes you from zero to a running dev server with hot reload against your Webflow site.
+This guide takes you from zero to a running dev server with live reload against your Webflow site.
 
 ## Prerequisites
 
@@ -67,7 +67,7 @@ You should see:
 
 If `openOnDev` is `true`, your browser opens `http://localhost:5173/`. The page renders **your Webflow staging site**, but the dev server has injected:
 
-1. The Vite HMR client (so it can push updates to your browser)
+1. The Vite client (so it can push reload messages to your browser)
 2. A `<script type="module" src="/viteflow/main.ts" data-viteflow></script>` tag right before `</body>` that loads your custom code
 
 You do **not** need to add anything to your Webflow project's Custom Code during development. The proxy handles everything.
@@ -88,13 +88,13 @@ const handler: RouteHandler = ({ path }) => {
 export default handler;
 ```
 
-Save. Your browser updates instantly without a full page reload — the router re-runs, and your new `console.log` fires.
+Save. Your browser reloads and your new `console.log` fires.
 
 Open the browser DevTools console. You will see logs from `_global.ts` and the matched route file.
 
 ## 5. Add a route
 
-Webflow has a `/about` page? Create `src/about.ts`:
+Webflow has a `/about` page? Create `src/about.ts` or `src/about.tsx`:
 
 ```ts
 import type { RouteHandler } from '../viteflow/types';
@@ -113,7 +113,7 @@ Navigate to `http://localhost:5173/about`. The proxy fetches your Webflow `/abou
 
 ## 6. Add a dynamic route
 
-Webflow CMS produces URLs like `/blog/some-post-slug`. Create `src/blog/[slug].ts`:
+Webflow CMS produces URLs like `/blog/some-post-slug`. Create `src/blog/[slug].ts` or `src/blog/[slug].tsx`:
 
 ```ts
 import type { RouteHandler } from '../../viteflow/types';

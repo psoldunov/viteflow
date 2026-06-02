@@ -1,6 +1,6 @@
 # Handlers
 
-Every route file (and `_global.ts`) exports a default function — the **handler** — that viteflow calls when the URL matches.
+Every route file (and `_global.ts` or `_global.tsx`) exports a default function — the **handler** — that viteflow calls when the URL matches.
 
 ## Signature
 
@@ -32,10 +32,10 @@ An object whose keys come from the dynamic segments in the route filename and wh
 | File | URL | `params` |
 |------|-----|----------|
 | `src/blog/[slug].ts` | `/blog/hello-world` | `{ slug: 'hello-world' }` |
-| `src/users/[id]/posts/[postId].ts` | `/users/42/posts/9` | `{ id: '42', postId: '9' }` |
-| `src/about.ts` | `/about` | `{}` |
+| `src/users/[id]/posts/[postId].tsx` | `/users/42/posts/9` | `{ id: '42', postId: '9' }` |
+| `src/about.tsx` | `/about` | `{}` |
 
-For `_global.ts`, `params` is always `{}` since it is not tied to a route pattern.
+For `_global.ts` and `_global.tsx`, `params` is always `{}` since the global handler is not tied to a route pattern.
 
 Values are always strings. If you need numbers, parse them yourself:
 
@@ -79,13 +79,13 @@ The router awaits async handlers but does not block other side effects. The Webf
 ## When handlers run
 
 1. **Initial page load.** As soon as `dist/main.js` (or `/viteflow/main.ts` in dev) executes, the router runs `dispatch(window.location.pathname)`. The global handler runs first, then the matched route handler.
-2. **Hot module replacement (dev only).** When you save a file under `/src`, Vite re-imports the changed module. The router re-runs `dispatch` against the current URL. The global handler runs first, then the matched route handler.
+2. **Dev reload.** When you save a file under `/src`, the default Vite config triggers a full browser reload. The bundle runs from scratch, then the global handler and matched route handler run again.
 
 Webflow uses traditional full-page navigation. Each link click triggers a complete page reload, which runs the bundle from scratch. There is no SPA-style client-side routing in viteflow itself.
 
-## Idempotency matters in dev
+## Idempotency still helps
 
-Because HMR re-runs your handler without unloading the previous run, side effects can stack up:
+The default template full-reloads on save, so ordinary dev edits start with a fresh DOM. Idempotency still matters when a handler can run more than once on the same page, such as after custom HMR changes, manual re-dispatch, or widget reinitialization. Without guards, side effects can stack up:
 
 ```ts
 // BAD — every save adds a duplicate listener
@@ -167,7 +167,7 @@ The same applies to the global handler — its errors are caught separately and 
 
 You can `import` shared utilities, types, or constants from other files inside `/src`. Vite resolves them at build time.
 
-The router scans `/src/**/*.ts` and treats every match as a route candidate. To keep utility files out of the route table, prefix the file or folder with an underscore (`_`):
+The router scans `/src/**/*.ts` and `/src/**/*.tsx` and treats every match as a route candidate. To keep utility files out of the route table, prefix the file or folder with an underscore (`_`):
 
 ```
 src/

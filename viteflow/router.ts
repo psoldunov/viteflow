@@ -1,6 +1,13 @@
 import type { RouteContext, RouteHandler, RouteModule } from './types';
 
-const modules = import.meta.glob<RouteModule>('/src/**/*.ts', { eager: true });
+const GLOBAL_MODULES = new Set(['/src/_global.ts', '/src/_global.tsx']);
+
+const modules = import.meta.glob<RouteModule>(
+	['/src/**/*.ts', '/src/**/*.tsx', '!/src/**/_*/**'],
+	{
+		eager: true,
+	},
+);
 
 type Route = {
 	pattern: string;
@@ -31,7 +38,7 @@ function compile(pattern: string): { regex: RegExp; paramNames: string[] } {
 }
 
 function fileToPattern(filePath: string): string {
-	let pattern = filePath.replace(/^\/src/, '').replace(/\.ts$/, '');
+	let pattern = filePath.replace(/^\/src/, '').replace(/\.tsx?$/, '');
 	if (pattern.endsWith('/index')) pattern = pattern.slice(0, -'/index'.length);
 	if (pattern === '' || pattern === '/index') pattern = '/';
 	return pattern.replace(/\[(\w+)\]/g, ':$1');
@@ -43,11 +50,20 @@ function buildRoutes(): {
 } {
 	const routes: Route[] = [];
 	let globalHandler: RouteHandler | null = null;
+	let globalFilePath: string | null = null;
 	const seen = new Map<string, string>();
 
 	for (const [filePath, mod] of Object.entries(modules)) {
-		if (filePath === '/src/_global.ts') {
-			if (typeof mod.default === 'function') globalHandler = mod.default;
+		if (GLOBAL_MODULES.has(filePath)) {
+			if (typeof mod.default === 'function') {
+				if (globalHandler && globalFilePath) {
+					throw new Error(
+						`[viteflow] Duplicate global handlers: ${globalFilePath} and ${filePath}`,
+					);
+				}
+				globalHandler = mod.default;
+				globalFilePath = filePath;
+			}
 			continue;
 		}
 

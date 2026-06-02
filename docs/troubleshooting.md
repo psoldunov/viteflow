@@ -106,11 +106,11 @@ bun add -d source-map-explorer
 bunx source-map-explorer dist/main.js
 ```
 
-## HMR re-runs my handler but old behavior persists
+## My handler runs again but old behavior persists
 
-Your handler is not idempotent. Each save adds new event listeners on top of old ones, or duplicates DOM elements.
+Your handler is probably not idempotent. This can happen if you customize the dev config to hot-update in place, manually re-dispatch routes, or initialize the same widget more than once. Each run can add new event listeners on top of old ones, or duplicate DOM elements.
 
-Use a cleanup pattern. See [Handlers → Idempotency](./handlers.md#idempotency-matters-in-dev) for three patterns.
+Use a cleanup pattern. See [Handlers → Idempotency](./handlers.md#idempotency-still-helps) for three patterns.
 
 ## Forms in dev fail with "Method Not Allowed"
 

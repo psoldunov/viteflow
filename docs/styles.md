@@ -57,7 +57,7 @@ The naming `_styles/` uses the underscore convention so it is not scanned as a r
 Vite handles CSS natively. When you import `./styles.css` from `_global.ts`, the dev server:
 
 1. Transforms the import into a JS module that injects a `<style>` tag.
-2. Wires HMR so saved CSS edits update the page **without a reload**. You see the new styles in milliseconds.
+2. Sends a full browser reload when saved CSS changes under `/src`.
 
 ### Production
 

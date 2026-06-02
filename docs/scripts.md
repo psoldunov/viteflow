@@ -4,7 +4,7 @@ All scripts defined in `package.json`. Run with `bun run <name>` or the `bun <na
 
 | Command | What it does |
 |---------|--------------|
-| `bun dev` | Start the dev server. Boots Vite with the Webflow proxy plugin, opens your browser at `http://localhost:5173/` (configurable via `viteflow.config.ts`). HMR + source maps active. |
+| `bun dev` | Start the dev server. Boots Vite with the Webflow proxy plugin, opens your browser at `http://localhost:5173/` (configurable via `viteflow.config.ts`). Live reload + source maps active. |
 | `bun run build` | Build for production. Produces `dist/main.js` (minified IIFE with embedded CSS) and `dist/main.js.map` (sourcemap). |
 | `bun run preview` | Run `vite preview`. Serves the built `dist/` at `http://localhost:4173/` so you can sanity-check the production bundle in isolation. |
 | `bun run deploy` | Build + upload `dist/main.js` to Webflow as a site asset, then print a `<script>` tag for you to paste into Webflow's Footer Custom Code. Cleans up old viteflow assets automatically. The printed tag is marked `data-viteflow-bundle` so `bun dev` strips it from proxied pages. Requires `WEBFLOW_API_TOKEN` and `WEBFLOW_SITE_ID` in `.env.local`. See [Production → Strategy C](./production.md#strategy-c-upload-to-webflow--paste-a-generated-tag-bun-run-deploy). |

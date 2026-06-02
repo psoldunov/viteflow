@@ -1,7 +1,35 @@
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig, loadEnv, type ModuleNode, type Plugin } from 'vite';
 import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
 import { pluginWebflowProxy } from './viteflow/plugin-webflow-proxy';
 import baseConfig from './viteflow.config';
+
+function fullReloadOnProjectChanges(): Plugin {
+	return {
+		name: 'viteflow:full-reload-on-project-changes',
+		apply: 'serve',
+		handleHotUpdate({ file, modules, server, timestamp }) {
+			const normalizedFile = file.replace(/\\/g, '/');
+			const shouldReload =
+				normalizedFile.includes('/src/') ||
+				normalizedFile.includes('/viteflow/');
+
+			if (!shouldReload) return;
+
+			const invalidatedModules = new Set<ModuleNode>();
+			for (const mod of modules) {
+				server.moduleGraph.invalidateModule(
+					mod,
+					invalidatedModules,
+					timestamp,
+					true,
+				);
+			}
+
+			server.ws.send({ type: 'full-reload' });
+			return [];
+		},
+	};
+}
 
 export default defineConfig(({ mode }) => {
 	const fileEnv = loadEnv(mode, process.cwd(), '');
@@ -20,6 +48,7 @@ export default defineConfig(({ mode }) => {
 
 	return {
 		plugins: [
+			fullReloadOnProjectChanges(),
 			pluginWebflowProxy(viteflowConfig),
 			cssInjectedByJsPlugin({ topExecutionPriority: false }),
 		],

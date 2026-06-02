@@ -1,6 +1,6 @@
 # viteflow
 
-Lean Webflow custom-code dev server with HMR + source maps. Bun + Vite + TypeScript. Next.js-style file-based routing.
+Lean Webflow custom-code dev server with live reload + source maps. Bun + Vite + TypeScript. Next.js-style file-based routing.
 
 The dev server **proxies your Webflow staging site** through localhost and **auto-injects the localhost script tag** — no need to edit Webflow Custom Code while developing.
 
@@ -13,7 +13,7 @@ Full guides live in [`/docs`](./docs/README.md):
 - [Routing](./docs/routing.md) — file-based routing rules
 - [Handlers](./docs/handlers.md) — handler signature, lifecycle, idempotency
 - [Styles](./docs/styles.md) — CSS, Sass
-- [Development](./docs/development.md) — proxy mechanics, HMR, debugging
+- [Development](./docs/development.md) — proxy mechanics, reloads, debugging
 - [Production](./docs/production.md) — building and deploying
 - [Recipes](./docs/recipes.md) — GSAP, jQuery, forms, lazy loading, more
 - [Troubleshooting](./docs/troubleshooting.md) — common errors and fixes
@@ -42,18 +42,18 @@ Run dev:
 bun dev
 ```
 
-Browser opens `http://localhost:5173/` showing your Webflow staging site with localhost JS injected. Edits in `/src` hot-reload instantly. Source maps point at original `.ts` files.
+Browser opens `http://localhost:5173/` showing your Webflow staging site with localhost JS injected. Edits in `/src` trigger a full browser reload. Source maps point at original `.ts` and `.tsx` files.
 
 ## Routing snapshot
 
 | File | URL |
 |------|-----|
-| `src/_global.ts` | every page (runs first) |
-| `src/index.ts` | `/` |
-| `src/about.ts` | `/about` |
-| `src/blog.ts` | `/blog` |
-| `src/blog/[slug].ts` | `/blog/:slug` |
-| `src/_lib/*.ts` | not routes — private utility files (underscore prefix) |
+| `src/_global.ts` or `.tsx` | every page (runs first) |
+| `src/index.ts` or `.tsx` | `/` |
+| `src/about.ts` or `.tsx` | `/about` |
+| `src/blog.ts` or `.tsx` | `/blog` |
+| `src/blog/[slug].ts` or `.tsx` | `/blog/:slug` |
+| `src/_lib/*` | not routes — private utility files (underscore prefix) |
 
 See [Routing](./docs/routing.md) for the full rules.
 
@@ -101,12 +101,12 @@ viteflow/                      # framework internals (don't edit)
   config.ts                    # ViteflowConfig + defineConfig
   plugin-webflow-proxy.ts      # Vite plugin: proxy + script injection
 src/                           # your code
-  _global.ts                   # runs everywhere
+  _global.ts                   # runs everywhere (.tsx also supported)
   styles.css                   # bundled into dist/main.js
   index.ts                     # /
   about.ts                     # /about
   blog.ts                      # /blog
-  blog/[slug].ts               # /blog/:slug
+  blog/[slug].ts               # /blog/:slug (.tsx also supported)
   _lib/                        # private utilities (underscore = ignored by router)
 viteflow.config.ts             # your staging URL + dev options
 vite.config.ts                 # Vite config (proxy + CSS inlining)
