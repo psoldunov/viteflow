@@ -47,7 +47,7 @@ function validate(config: ViteflowConfig): ViteflowConfig {
 		parsed = new URL(config.webflowStagingUrl);
 	} catch {
 		throw new Error(
-			`[viteflow] webflowStagingUrl is not a valid URL: "${config.webflowStagingUrl}". Expected e.g. "https://your-site.webflow.io".`,
+			`[viteflow] webflowStagingUrl is not a valid URL: "${config.webflowStagingUrl}". Expected e.g. "https://example.webflow.io".`,
 		);
 	}
 
