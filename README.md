@@ -118,4 +118,4 @@ docs/                          # full documentation
 
 ## License
 
-MIT
+MIT. See [LICENSE](./LICENSE).
