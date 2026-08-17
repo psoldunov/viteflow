@@ -1,0 +1,38 @@
+#:schema https://www.ensemblr.dev/schemas/settings.schema.json
+
+[scripts]
+# Bun is the runtime, package manager, and CLI for this repo (bun.lock is checked in).
+# .env.local needs no setup step: file_include_globs defaults to [".env*"], so a
+# new workspace inherits it from the base clone. A fresh clone with none starts
+# from viteflow.config.ts defaults — copy .env.example by hand to override them.
+setup = "bun install"
+
+[scripts.run.dev]
+# --port is passed through bun to the vite CLI, which outranks server.port in
+# vite.config.ts. Every workspace proxies its own Webflow staging site on its own port.
+command = "bun run dev --port $ENSEMBLR_PORT"
+icon = "server"
+default = true
+available_in = ["local"]
+
+[scripts.run.typecheck]
+command = "bun run typecheck"
+icon = "badge-check"
+available_in = ["local"]
+
+[scripts.run.lint]
+command = "bun run lint"
+icon = "list-checks"
+available_in = ["local"]
+
+[scripts.run.fix]
+# Biome lint + format, both with --write. Rewrites files in place.
+command = "bun run check"
+icon = "paintbrush"
+available_in = ["local"]
+
+[scripts.run.build]
+# Produces dist/main.js (minified IIFE, CSS inlined) + dist/main.js.map.
+command = "bun run build"
+icon = "hammer"
+available_in = ["local"]
